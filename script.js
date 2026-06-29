@@ -1,47 +1,59 @@
-const weekStart = "Monday";
-
 const schedule = [
   {
     day: "Monday",
-    morning: "Open",
-    afternoon: "Open",
-    night: "Open",
+    shifts: [
+      { name: "Morning", caregiver: "Open" },
+      { name: "Afternoon", caregiver: "Open" },
+      { name: "Night", caregiver: "Open" },
+    ],
   },
   {
     day: "Tuesday",
-    morning: "Open",
-    afternoon: "Open",
-    night: "Open",
+    shifts: [
+      { name: "Morning", caregiver: "Open" },
+      { name: "Afternoon", caregiver: "Open" },
+      { name: "Night", caregiver: "Open" },
+    ],
   },
   {
     day: "Wednesday",
-    morning: "Open",
-    afternoon: "Open",
-    night: "Open",
+    shifts: [
+      { name: "Morning", caregiver: "Open" },
+      { name: "Afternoon", caregiver: "Open" },
+      { name: "Night", caregiver: "Open" },
+    ],
   },
   {
     day: "Thursday",
-    morning: "Open",
-    afternoon: "Open",
-    night: "Open",
+    shifts: [
+      { name: "Morning", caregiver: "Open" },
+      { name: "Afternoon", caregiver: "Open" },
+      { name: "Night", caregiver: "Open" },
+    ],
   },
   {
     day: "Friday",
-    morning: "Open",
-    afternoon: "Open",
-    night: "Open",
+    shifts: [
+      { name: "Morning", caregiver: "Open" },
+      { name: "Afternoon", caregiver: "Open" },
+      { name: "Night", caregiver: "Open" },
+    ],
   },
   {
     day: "Saturday",
-    morning: "Open",
-    afternoon: "Open",
-    night: "Open",
+    shifts: [
+      { name: "Morning", caregiver: "Open" },
+      { name: "Afternoon", caregiver: "Open" },
+      { name: "Night", caregiver: "Open" },
+    ],
   },
   {
     day: "Sunday",
-    morning: "Open",
-    afternoon: "Open",
-    night: "Open",
+    shifts: [
+      { name: "Morning", caregiver: "Open" },
+      { name: "Afternoon", caregiver: "Open" },
+      { name: "Night", caregiver: "Open" },
+    ],
   },
 ];
 
@@ -49,32 +61,24 @@ const scheduleSection = document.querySelector("#schedule");
 
 schedule.forEach(function (day) {
   const dayCard = document.createElement("div");
-
   dayCard.classList.add("day-card");
 
+  let shiftRows = "";
+
+  day.shifts.forEach(function (shift) {
+    shiftRows += `
+      <div class="shift-row">
+        <span class="shift-name">${shift.name}</span>
+        <span class="caregiver ${shift.caregiver === "Open" ? "open-shift" : ""}">
+          ${shift.caregiver}
+        </span>
+      </div>
+    `;
+  });
+
   dayCard.innerHTML = `
-  <h3>${day.day}</h3>
-
-  <div class="shift-row">
-    <span class="shift-name">Morning</span>
-    <span class="caregiver ${day.morning === "Open" ? "open-shift" : ""}">
-      ${day.morning}
-    </span>
-  </div>
-
-  <div class="shift-row">
-    <span class="shift-name">Afternoon</span>
-    <span class="caregiver ${day.afternoon === "Open" ? "open-shift" : ""}">
-      ${day.afternoon}
-    </span>
-  </div>
-
-  <div class="shift-row">
-    <span class="shift-name">Night</span>
-    <span class="caregiver ${day.night === "Open" ? "open-shift" : ""}">
-      ${day.night}
-    </span>
-  </div>
+    <h3>${day.day}</h3>
+    ${shiftRows}
   `;
 
   scheduleSection.append(dayCard);
