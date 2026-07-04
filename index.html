@@ -31,29 +31,13 @@
 
         <label for="shift-style">Shift style</label>
         <select id="shift-style">
-          <option value="custom">Custom shifts</option>
-          <div class="caregiver-section">
-            <label for="caregiver-name">Caregiver name</label>
-
-            <div class="caregiver-controls">
-              <input
-                id="caregiver-name"
-                type="text"
-                placeholder="Example: Alex"
-              />
-              <button id="add-caregiver-button" type="button">
-                Add Caregiver
-              </button>
-            </div>
-
-            <h3>Caregivers</h3>
-            <ul id="caregiver-list"></ul>
-          </div>
-          <option value="three">3 shifts per day</option>
+          <option value="one">1 shift per day</option>
           <option value="two">2 shifts per day</option>
+          <option value="three">3 shifts per day</option>
+          <option value="custom">custom shifts</option>
         </select>
 
-        <div class="custom-shift-section">
+        <div id="custom-shift-section" class="custom-shift-section hidden">
           <label for="custom-shift-name">Custom shift name</label>
 
           <div class="custom-shift-controls">
@@ -67,6 +51,24 @@
 
           <h3>Current shifts</h3>
           <ul id="shift-list"></ul>
+        </div>
+
+        <div class="caregiver-section">
+          <label for="caregiver-name">Caregiver name</label>
+
+          <div class="caregiver-controls">
+            <input
+              id="caregiver-name"
+              type="text"
+              placeholder="Example: Alex"
+            />
+            <button id="add-caregiver-button" type="button">
+              Add Caregiver
+            </button>
+          </div>
+
+          <h3>Caregivers</h3>
+          <ul id="caregiver-list"></ul>
         </div>
       </section>
 
