@@ -9,8 +9,8 @@
 
   <body>
     <header>
-      <title>careflow</title>
-      <h1>careflow</h1>
+      <title>kindshift</title>
+      <h1>kindshift</h1>
       <p>simple caregiving schedules for care teams</p>
     </header>
 
@@ -18,24 +18,23 @@
       <section class="customize-card">
         <h2>Customize Schedule</h2>
 
-        <label foSr="week-start">Week starts on</label>
+        <label for="week-start">Week starts on</label>
         <select id="week-start">
           <option>Monday</option>
-          <option>Sunday</option>
+          <option>Tuesday</option>
+          <option>Wednesday</option>
+          <option>Thursday</option>
           <option>Friday</option>
+          <option>Saturday</option>
+          <option>Sunday</option>
         </select>
 
         <label for="shift-style">Shift style</label>
         <select id="shift-style">
-          <option>Morning / Afternoon / Night</option>
-          <option>Day / Night</option>
-          <option>Custom shifts</option>
+          <option>3 shifts per day</option>
+          <option>2 shifts per day</option>
+          <option>custom</option>
         </select>
-      </section>
-
-      <section>
-        <h2>Weekly Schedule</h2>
-        <p>Monday - Sunday</p>
       </section>
 
       <section id="schedule"></section>
