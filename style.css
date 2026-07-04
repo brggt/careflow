@@ -124,3 +124,59 @@ select {
   padding: 6px 10px;
   font-size: 12px;
 }
+
+.shift-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.shift-list-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.move-shift-button {
+  background-color: #e6f3f2;
+  color: #244c4c;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.remove-shift-button {
+  background-color: #fee4e2;
+  color: #b42318;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.caregiver-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.caregiver-section {
+  margin-top: 20px;
+}
+
+#caregiver-list {
+  padding-left: 20px;
+}
+
+#caregiver-list li {
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.assignment-select {
+  width: auto;
+  min-width: 130px;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.hidden {
+  display: none;
+}

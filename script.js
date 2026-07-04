@@ -9,14 +9,23 @@ const allWeekDays = [
 ];
 
 let customShifts = ["Morning", "Afternoon", "Night"];
+let caregivers = [];
+let scheduleAssignments = {};
 
 const scheduleSection = document.querySelector("#schedule");
+
 const customShiftInput = document.querySelector("#custom-shift-name");
 const addShiftButton = document.querySelector("#add-shift-button");
 const shiftList = document.querySelector("#shift-list");
+
+const caregiverInput = document.querySelector("#caregiver-name");
+const addCaregiverButton = document.querySelector("#add-caregiver-button");
+const caregiverList = document.querySelector("#caregiver-list");
+
 const weekStartSelect = document.querySelector("#week-start");
 const weekLabel = document.querySelector("#week-label");
 const shiftStyleSelect = document.querySelector("#shift-style");
+const customShiftSection = document.querySelector("#custom-shift-section");
 
 function getOrderedWeekDays(startDay) {
   const startIndex = allWeekDays.indexOf(startDay);
@@ -29,15 +38,27 @@ function getOrderedWeekDays(startDay) {
 function getActiveShifts() {
   const selectedShiftStyle = shiftStyleSelect.value;
 
-  if (selectedShiftStyle === "three") {
-    return ["Morning", "Afternoon", "Night"];
+  if (selectedShiftStyle === "one") {
+    return ["Full Day"];
   }
 
   if (selectedShiftStyle === "two") {
     return ["Day", "Night"];
   }
 
+  if (selectedShiftStyle === "three") {
+    return ["Morning", "Afternoon", "Night"];
+  }
+
   return customShifts;
+}
+
+function updateCustomShiftVisibility() {
+  if (shiftStyleSelect.value === "custom") {
+    customShiftSection.classList.remove("hidden");
+  } else {
+    customShiftSection.classList.add("hidden");
+  }
 }
 
 function renderShiftList() {
@@ -49,18 +70,62 @@ function renderShiftList() {
 
     shiftItem.innerHTML = `
       <span>${shiftName}</span>
-      <button class="remove-shift-button" type="button">Remove</button>
+
+      <div class="shift-list-buttons">
+        <button class="move-shift-button move-up-button" type="button">↑</button>
+        <button class="move-shift-button move-down-button" type="button">↓</button>
+        <button class="remove-shift-button" type="button">Remove</button>
+      </div>
     `;
 
+    const moveUpButton = shiftItem.querySelector(".move-up-button");
+    const moveDownButton = shiftItem.querySelector(".move-down-button");
     const removeButton = shiftItem.querySelector(".remove-shift-button");
+
+    moveUpButton.addEventListener("click", function () {
+      if (index === 0) {
+        return;
+      }
+
+      const currentShift = customShifts[index];
+      customShifts[index] = customShifts[index - 1];
+      customShifts[index - 1] = currentShift;
+
+      renderShiftList();
+      renderSchedule();
+    });
+
+    moveDownButton.addEventListener("click", function () {
+      if (index === customShifts.length - 1) {
+        return;
+      }
+
+      const currentShift = customShifts[index];
+      customShifts[index] = customShifts[index + 1];
+      customShifts[index + 1] = currentShift;
+
+      renderShiftList();
+      renderSchedule();
+    });
 
     removeButton.addEventListener("click", function () {
       customShifts.splice(index, 1);
+
       renderShiftList();
       renderSchedule();
     });
 
     shiftList.append(shiftItem);
+  });
+}
+
+function renderCaregiverList() {
+  caregiverList.innerHTML = "";
+
+  caregivers.forEach(function (caregiverName) {
+    const caregiverItem = document.createElement("li");
+    caregiverItem.textContent = caregiverName;
+    caregiverList.append(caregiverItem);
   });
 }
 
@@ -81,10 +146,30 @@ function renderSchedule() {
     let shiftRows = "";
 
     activeShifts.forEach(function (shiftName) {
+      const assignmentKey = `${dayName}-${shiftName}`;
+      const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
+
+      let caregiverOptions = `<option value="Open">Open</option>`;
+
+      caregivers.forEach(function (caregiverName) {
+        const selected = caregiverName === assignedCaregiver ? "selected" : "";
+
+        caregiverOptions += `
+          <option value="${caregiverName}" ${selected}>${caregiverName}</option>
+        `;
+      });
+
       shiftRows += `
         <div class="shift-row">
           <span class="shift-name">${shiftName}</span>
-          <span class="caregiver open-shift">Open</span>
+
+          <select 
+            class="assignment-select" 
+            data-day="${dayName}" 
+            data-shift="${shiftName}"
+          >
+            ${caregiverOptions}
+          </select>
         </div>
       `;
     });
@@ -95,6 +180,18 @@ function renderSchedule() {
     `;
 
     scheduleSection.append(dayCard);
+  });
+
+  const assignmentSelects = document.querySelectorAll(".assignment-select");
+
+  assignmentSelects.forEach(function (select) {
+    select.addEventListener("change", function () {
+      const dayName = select.dataset.day;
+      const shiftName = select.dataset.shift;
+      const assignmentKey = `${dayName}-${shiftName}`;
+
+      scheduleAssignments[assignmentKey] = select.value;
+    });
   });
 }
 
@@ -121,13 +218,39 @@ addShiftButton.addEventListener("click", function () {
   renderSchedule();
 });
 
+addCaregiverButton.addEventListener("click", function () {
+  const newCaregiverName = caregiverInput.value.trim();
+
+  if (newCaregiverName === "") {
+    return;
+  }
+
+  const isDuplicate = caregivers.some(function (caregiverName) {
+    return caregiverName.toLowerCase() === newCaregiverName.toLowerCase();
+  });
+
+  if (isDuplicate) {
+    caregiverInput.value = "";
+    return;
+  }
+
+  caregivers.push(newCaregiverName);
+  caregiverInput.value = "";
+
+  renderCaregiverList();
+  renderSchedule();
+});
+
 weekStartSelect.addEventListener("change", function () {
   renderSchedule();
 });
 
 shiftStyleSelect.addEventListener("change", function () {
+  updateCustomShiftVisibility();
   renderSchedule();
 });
 
+updateCustomShiftVisibility();
 renderShiftList();
+renderCaregiverList();
 renderSchedule();
