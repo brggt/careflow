@@ -11,10 +11,12 @@ const allWeekDays = [
 let customShifts = ["Morning", "Afternoon", "Night"];
 let caregivers = [];
 let scheduleAssignments = {};
+let scheduleNote = "";
 
 function saveData() {
   localStorage.setItem("kindshiftCustomShifts", JSON.stringify(customShifts));
   localStorage.setItem("kindshiftCaregivers", JSON.stringify(caregivers));
+  localStorage.setItem("kindshiftScheduleNote", JSON.stringify(scheduleNote));
   localStorage.setItem(
     "kindshiftAssignments",
     JSON.stringify(scheduleAssignments),
@@ -24,6 +26,7 @@ function saveData() {
 function loadData() {
   const savedCustomShifts = localStorage.getItem("kindshiftCustomShifts");
   const savedCaregivers = localStorage.getItem("kindshiftCaregivers");
+  const savedScheduleNote = localStorage.getItem("kindshiftScheduleNote");
   const savedAssignments = localStorage.getItem("kindshiftAssignments");
 
   if (savedCustomShifts) {
@@ -36,6 +39,10 @@ function loadData() {
 
   if (savedAssignments) {
     scheduleAssignments = JSON.parse(savedAssignments);
+  }
+
+  if (savedScheduleNote) {
+    scheduleNote = savedScheduleNote;
   }
 }
 
@@ -53,6 +60,12 @@ const weekStartSelect = document.querySelector("#week-start");
 const weekLabel = document.querySelector("#week-label");
 const shiftStyleSelect = document.querySelector("#shift-style");
 const customShiftSection = document.querySelector("#custom-shift-section");
+const scheduleNoteInput = document.querySelector("#schedule-note");
+
+scheduleNoteInput.addEventListener("input", function () {
+  scheduleNote = scheduleNoteInput.value;
+  saveData();
+});
 
 function getOrderedWeekDays(startDay) {
   const startIndex = allWeekDays.indexOf(startDay);
@@ -155,9 +168,34 @@ function renderShiftList() {
 function renderCaregiverList() {
   caregiverList.innerHTML = "";
 
-  caregivers.forEach(function (caregiverName) {
+  caregivers.forEach(function (caregiverName, index) {
     const caregiverItem = document.createElement("li");
-    caregiverItem.textContent = caregiverName;
+    caregiverItem.classList.add("caregiver-list-item");
+
+    caregiverItem.innerHTML = `
+      <span>${caregiverName}</span>
+      <button class="remove-caregiver-button" type="button">Remove</button>
+    `;
+
+    const removeButton = caregiverItem.querySelector(
+      ".remove-caregiver-button",
+    );
+
+    removeButton.addEventListener("click", function () {
+      caregivers.splice(index, 1);
+
+      Object.keys(scheduleAssignments).forEach(function (assignmentKey) {
+        if (scheduleAssignments[assignmentKey] === caregiverName) {
+          scheduleAssignments[assignmentKey] = "Open";
+        }
+      });
+
+      saveData();
+
+      renderCaregiverList();
+      renderSchedule();
+    });
+
     caregiverList.append(caregiverItem);
   });
 }
@@ -288,6 +326,10 @@ shiftStyleSelect.addEventListener("change", function () {
   updateCustomShiftVisibility();
   renderSchedule();
 });
+
+loadData();
+
+scheduleNoteInput.value = scheduleNote;
 
 updateCustomShiftVisibility();
 renderShiftList();
