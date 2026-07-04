@@ -12,6 +12,33 @@ let customShifts = ["Morning", "Afternoon", "Night"];
 let caregivers = [];
 let scheduleAssignments = {};
 
+function saveData() {
+  localStorage.setItem("kindshiftCustomShifts", JSON.stringify(customShifts));
+  localStorage.setItem("kindshiftCaregivers", JSON.stringify(caregivers));
+  localStorage.setItem(
+    "kindshiftAssignments",
+    JSON.stringify(scheduleAssignments),
+  );
+}
+
+function loadData() {
+  const savedCustomShifts = localStorage.getItem("kindshiftCustomShifts");
+  const savedCaregivers = localStorage.getItem("kindshiftCaregivers");
+  const savedAssignments = localStorage.getItem("kindshiftAssignments");
+
+  if (savedCustomShifts) {
+    customShifts = JSON.parse(savedCustomShifts);
+  }
+
+  if (savedCaregivers) {
+    caregivers = JSON.parse(savedCaregivers);
+  }
+
+  if (savedAssignments) {
+    scheduleAssignments = JSON.parse(savedAssignments);
+  }
+}
+
 const scheduleSection = document.querySelector("#schedule");
 
 const customShiftInput = document.querySelector("#custom-shift-name");
@@ -91,6 +118,8 @@ function renderShiftList() {
       customShifts[index] = customShifts[index - 1];
       customShifts[index - 1] = currentShift;
 
+      saveData();
+
       renderShiftList();
       renderSchedule();
     });
@@ -104,12 +133,16 @@ function renderShiftList() {
       customShifts[index] = customShifts[index + 1];
       customShifts[index + 1] = currentShift;
 
+      saveData();
+
       renderShiftList();
       renderSchedule();
     });
 
     removeButton.addEventListener("click", function () {
       customShifts.splice(index, 1);
+
+      saveData();
 
       renderShiftList();
       renderSchedule();
@@ -191,6 +224,8 @@ function renderSchedule() {
       const assignmentKey = `${dayName}-${shiftName}`;
 
       scheduleAssignments[assignmentKey] = select.value;
+
+      saveData();
     });
   });
 }
@@ -214,6 +249,8 @@ addShiftButton.addEventListener("click", function () {
   customShifts.push(newShiftName);
   customShiftInput.value = "";
 
+  saveData();
+
   renderShiftList();
   renderSchedule();
 });
@@ -236,6 +273,8 @@ addCaregiverButton.addEventListener("click", function () {
 
   caregivers.push(newCaregiverName);
   caregiverInput.value = "";
+
+  saveData();
 
   renderCaregiverList();
   renderSchedule();
