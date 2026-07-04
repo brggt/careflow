@@ -109,3 +109,18 @@ select {
   font-size: 16px;
   background-color: white;
 }
+
+.shift-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.remove-shift-button {
+  background-color: #fee4e2;
+  color: #b42318;
+  padding: 6px 10px;
+  font-size: 12px;
+}

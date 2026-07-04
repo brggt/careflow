@@ -31,10 +31,31 @@
 
         <label for="shift-style">Shift style</label>
         <select id="shift-style">
-          <option>3 shifts per day</option>
-          <option>2 shifts per day</option>
-          <option>custom</option>
+          <option value="custom">Custom shifts</option>
+          <option value="three">3 shifts per day</option>
+          <option value="two">2 shifts per day</option>
         </select>
+
+        <div class="custom-shift-section">
+          <label for="custom-shift-name">Custom shift name</label>
+
+          <div class="custom-shift-controls">
+            <input
+              id="custom-shift-name"
+              type="text"
+              placeholder="Example: Evening"
+            />
+            <button id="add-shift-button" type="button">Add Shift</button>
+          </div>
+
+          <h3>Current shifts</h3>
+          <ul id="shift-list"></ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>Weekly Schedule</h2>
+        <p id="week-label">Monday - Sunday</p>
       </section>
 
       <section id="schedule"></section>
