@@ -215,18 +215,30 @@ function getActiveShifts() {
   const selectedShiftStyle = shiftStyleSelect.value;
 
   if (selectedShiftStyle === "one") {
-    return ["Full Day"];
+    return [{ name: "Full Day", time: "All day" }];
   }
 
   if (selectedShiftStyle === "two") {
-    return ["Day", "Night"];
+    return [
+      { name: "Day", time: "7:00 AM - 7:00 PM" },
+      { name: "Night", time: "7:00 PM - 7:00 AM" },
+    ];
   }
 
   if (selectedShiftStyle === "three") {
-    return ["Morning", "Afternoon", "Night"];
+    return [
+      { name: "Morning", time: "6:30 AM - 1:00 PM" },
+      { name: "Afternoon", time: "1:00 PM - 7:00 PM" },
+      { name: "Night", time: "7:00 PM - 6:30 AM" },
+    ];
   }
 
-  return customShifts;
+  return customShifts.map(function (shiftName) {
+    return {
+      name: shiftName,
+      time: "Custom time",
+    };
+  });
 }
 
 function renderShiftList() {
@@ -358,16 +370,21 @@ function renderSchedule() {
     weekLabel.textContent = `${firstDay} - ${lastDay}`;
   }
 
+  const selectedDateKey = weekStartDateInput.value || getTodayDateValue();
+
   scheduleDays.forEach(function (day) {
     const dayCard = document.createElement("div");
     dayCard.classList.add("day-card");
 
+    if (selectedView === "weekly" && day.key === selectedDateKey) {
+      dayCard.classList.add("selected-date-card");
+    }
+
     let shiftRows = "";
 
-    activeShifts.forEach(function (shiftName) {
-      const assignmentKey = `${day.key}-${shiftName}`;
+    activeShifts.forEach(function (shift) {
+      const assignmentKey = `${day.key}-${shift.name}`;
       const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
-
       let caregiverOptions = `<option value="Open">Open</option>`;
 
       caregivers.forEach(function (caregiverName) {
@@ -379,24 +396,36 @@ function renderSchedule() {
       });
 
       shiftRows += `
-        <div class="shift-row">
-          <span class="shift-name">${shiftName}</span>
+  <div class="shift-row">
+    <div>
+      <span class="shift-name">${shift.name}</span>
+      <span class="shift-time">${shift.time}</span>
+    </div>
 
-          <select
-            class="assignment-select"
-            data-day="${day.key}"
-            data-shift="${shiftName}"
-          >
-            ${caregiverOptions}
-          </select>
-        </div>
-      `;
+    <select
+      class="assignment-select"
+      data-day="${day.key}"
+      data-shift="${shift.name}"
+    >
+      ${caregiverOptions}
+    </select>
+  </div>
+`;
     });
 
+    const selectedBadge =
+      selectedView === "weekly" && day.key === selectedDateKey
+        ? `<span class="selected-badge">Selected date</span>`
+        : "";
+
     dayCard.innerHTML = `
-      <h3>${day.label}</h3>
-      ${shiftRows}
-    `;
+  <div class="day-card-header">
+    <h3>${day.label}</h3>
+    ${selectedBadge}
+  </div>
+
+  ${shiftRows}
+`;
 
     scheduleSection.append(dayCard);
   });

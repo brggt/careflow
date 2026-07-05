@@ -243,3 +243,31 @@ input[type="date"] {
   border-radius: 10px;
   font-size: 16px;
 }
+
+.selected-date-card {
+  border: 2px solid #244c4c;
+  background-color: #f0fafa;
+}
+
+.day-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.selected-badge {
+  background-color: #e6f3f2;
+  color: #244c4c;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.shift-time {
+  display: block;
+  color: #667085;
+  font-size: 13px;
+  margin-top: 4px;
+}
