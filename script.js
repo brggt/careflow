@@ -35,9 +35,10 @@ const monthPickerSection = document.querySelector("#month-picker-section");
 const weekStartDateInput = document.querySelector("#week-start-date");
 const weekPickerSection = document.querySelector("#week-picker-section");
 
-const scheduleTitle = document.querySelector("#schedule-title");
 const scheduleNoteInput = document.querySelector("#schedule-note");
 const clearScheduleButton = document.querySelector("#clear-schedule-button");
+
+const scheduleTitle = document.querySelector("#schedule-title");
 
 function saveData() {
   localStorage.setItem("kindshiftCustomShifts", JSON.stringify(customShifts));
@@ -345,7 +346,9 @@ function renderSchedule() {
   let scheduleDays = [];
 
   if (selectedView === "monthly") {
-    scheduleTitle.textContent = "Monthly Schedule";
+    if (scheduleTitle) {
+      scheduleTitle.textContent = "Monthly Schedule";
+    }
 
     scheduleDays = getDaysInSelectedMonth();
 
@@ -360,7 +363,9 @@ function renderSchedule() {
       },
     );
   } else {
-    scheduleTitle.textContent = "Weekly Schedule";
+    if (scheduleTitle) {
+      scheduleTitle.textContent = "Weekly Schedule";
+    }
 
     scheduleDays = getDaysInSelectedWeek();
 
@@ -385,6 +390,7 @@ function renderSchedule() {
     activeShifts.forEach(function (shift) {
       const assignmentKey = `${day.key}-${shift.name}`;
       const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
+
       let caregiverOptions = `<option value="Open">Open</option>`;
 
       caregivers.forEach(function (caregiverName) {
@@ -396,21 +402,21 @@ function renderSchedule() {
       });
 
       shiftRows += `
-  <div class="shift-row">
-    <div>
-      <span class="shift-name">${shift.name}</span>
-      <span class="shift-time">${shift.time}</span>
-    </div>
+        <div class="shift-row">
+          <div>
+            <span class="shift-name">${shift.name}</span>
+            <span class="shift-time">${shift.time}</span>
+          </div>
 
-    <select
-      class="assignment-select"
-      data-day="${day.key}"
-      data-shift="${shift.name}"
-    >
-      ${caregiverOptions}
-    </select>
-  </div>
-`;
+          <select
+            class="assignment-select"
+            data-day="${day.key}"
+            data-shift="${shift.name}"
+          >
+            ${caregiverOptions}
+          </select>
+        </div>
+      `;
     });
 
     const selectedBadge =
@@ -419,13 +425,13 @@ function renderSchedule() {
         : "";
 
     dayCard.innerHTML = `
-  <div class="day-card-header">
-    <h3>${day.label}</h3>
-    ${selectedBadge}
-  </div>
+      <div class="day-card-header">
+        <h3>${day.label}</h3>
+        ${selectedBadge}
+      </div>
 
-  ${shiftRows}
-`;
+      ${shiftRows}
+    `;
 
     scheduleSection.append(dayCard);
   });
