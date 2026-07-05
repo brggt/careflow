@@ -13,21 +13,53 @@ let caregivers = [];
 let scheduleAssignments = {};
 let scheduleNote = "";
 
+const scheduleSection = document.querySelector("#schedule");
+
+const customShiftInput = document.querySelector("#custom-shift-name");
+const addShiftButton = document.querySelector("#add-shift-button");
+const shiftList = document.querySelector("#shift-list");
+const customShiftSection = document.querySelector("#custom-shift-section");
+
+const caregiverInput = document.querySelector("#caregiver-name");
+const addCaregiverButton = document.querySelector("#add-caregiver-button");
+const caregiverList = document.querySelector("#caregiver-list");
+
+const weekStartSelect = document.querySelector("#week-start");
+const weekLabel = document.querySelector("#week-label");
+const shiftStyleSelect = document.querySelector("#shift-style");
+
+const scheduleViewSelect = document.querySelector("#schedule-view");
+const monthPicker = document.querySelector("#month-picker");
+const monthPickerSection = document.querySelector("#month-picker-section");
+
+const weekStartDateInput = document.querySelector("#week-start-date");
+const weekPickerSection = document.querySelector("#week-picker-section");
+
+const scheduleTitle = document.querySelector("#schedule-title");
+const scheduleNoteInput = document.querySelector("#schedule-note");
+const clearScheduleButton = document.querySelector("#clear-schedule-button");
+
 function saveData() {
   localStorage.setItem("kindshiftCustomShifts", JSON.stringify(customShifts));
   localStorage.setItem("kindshiftCaregivers", JSON.stringify(caregivers));
-  localStorage.setItem("kindshiftScheduleNote", JSON.stringify(scheduleNote));
   localStorage.setItem(
     "kindshiftAssignments",
     JSON.stringify(scheduleAssignments),
   );
+  localStorage.setItem("kindshiftScheduleNote", scheduleNote);
+
+  localStorage.setItem("kindshiftScheduleView", scheduleViewSelect.value);
+  localStorage.setItem("kindshiftShiftStyle", shiftStyleSelect.value);
+  localStorage.setItem("kindshiftWeekStart", weekStartSelect.value);
+  localStorage.setItem("kindshiftMonth", monthPicker.value);
+  localStorage.setItem("kindshiftWeekStartDate", weekStartDateInput.value);
 }
 
 function loadData() {
   const savedCustomShifts = localStorage.getItem("kindshiftCustomShifts");
   const savedCaregivers = localStorage.getItem("kindshiftCaregivers");
-  const savedScheduleNote = localStorage.getItem("kindshiftScheduleNote");
   const savedAssignments = localStorage.getItem("kindshiftAssignments");
+  const savedScheduleNote = localStorage.getItem("kindshiftScheduleNote");
 
   if (savedCustomShifts) {
     customShifts = JSON.parse(savedCustomShifts);
@@ -44,35 +76,139 @@ function loadData() {
   if (savedScheduleNote) {
     scheduleNote = savedScheduleNote;
   }
+
+  const savedScheduleView = localStorage.getItem("kindshiftScheduleView");
+  const savedShiftStyle = localStorage.getItem("kindshiftShiftStyle");
+  const savedWeekStart = localStorage.getItem("kindshiftWeekStart");
+  const savedMonth = localStorage.getItem("kindshiftMonth");
+  const savedWeekStartDate = localStorage.getItem("kindshiftWeekStartDate");
+
+  if (savedScheduleView) {
+    scheduleViewSelect.value = savedScheduleView;
+  }
+
+  if (savedShiftStyle) {
+    shiftStyleSelect.value = savedShiftStyle;
+  }
+
+  if (savedWeekStart) {
+    weekStartSelect.value = savedWeekStart;
+  }
+
+  if (savedMonth) {
+    monthPicker.value = savedMonth;
+  }
+
+  if (savedWeekStartDate) {
+    weekStartDateInput.value = savedWeekStartDate;
+  }
 }
 
-const scheduleSection = document.querySelector("#schedule");
+function getTodayDateValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
 
-const customShiftInput = document.querySelector("#custom-shift-name");
-const addShiftButton = document.querySelector("#add-shift-button");
-const shiftList = document.querySelector("#shift-list");
+  return `${year}-${month}-${day}`;
+}
 
-const caregiverInput = document.querySelector("#caregiver-name");
-const addCaregiverButton = document.querySelector("#add-caregiver-button");
-const caregiverList = document.querySelector("#caregiver-list");
+function getTodayMonthValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
 
-const weekStartSelect = document.querySelector("#week-start");
-const weekLabel = document.querySelector("#week-label");
-const shiftStyleSelect = document.querySelector("#shift-style");
-const customShiftSection = document.querySelector("#custom-shift-section");
-const scheduleNoteInput = document.querySelector("#schedule-note");
+  return `${year}-${month}`;
+}
 
-scheduleNoteInput.addEventListener("input", function () {
-  scheduleNote = scheduleNoteInput.value;
-  saveData();
-});
+function getDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-function getOrderedWeekDays(startDay) {
-  const startIndex = allWeekDays.indexOf(startDay);
-  const firstPart = allWeekDays.slice(startIndex);
-  const secondPart = allWeekDays.slice(0, startIndex);
+  return `${year}-${month}-${day}`;
+}
 
-  return firstPart.concat(secondPart);
+function getDaysInSelectedWeek() {
+  const selectedDate = weekStartDateInput.value || getTodayDateValue();
+  const [year, month, day] = selectedDate.split("-").map(Number);
+
+  const chosenDate = new Date(year, month - 1, day);
+
+  const selectedStartDay = weekStartSelect.value;
+  const selectedStartDayIndex = allWeekDays.indexOf(selectedStartDay);
+
+  const jsDayIndex = chosenDate.getDay();
+
+  const jsToAppDayIndex = jsDayIndex === 0 ? 6 : jsDayIndex - 1;
+
+  let daysToSubtract = jsToAppDayIndex - selectedStartDayIndex;
+
+  if (daysToSubtract < 0) {
+    daysToSubtract += 7;
+  }
+
+  const startDate = new Date(chosenDate);
+  startDate.setDate(chosenDate.getDate() - daysToSubtract);
+
+  const days = [];
+
+  for (let i = 0; i < 7; i++) {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + i);
+
+    days.push({
+      label: currentDate.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+      }),
+      key: getDateKey(currentDate),
+    });
+  }
+
+  return days;
+}
+
+function getDaysInSelectedMonth() {
+  const selectedMonth = monthPicker.value || getTodayMonthValue();
+  const [year, month] = selectedMonth.split("-").map(Number);
+
+  const days = [];
+  const lastDayOfMonth = new Date(year, month, 0).getDate();
+
+  for (let dayNumber = 1; dayNumber <= lastDayOfMonth; dayNumber++) {
+    const date = new Date(year, month - 1, dayNumber);
+
+    days.push({
+      label: date.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+      }),
+      key: getDateKey(date),
+    });
+  }
+
+  return days;
+}
+
+function updatePickerVisibility() {
+  if (scheduleViewSelect.value === "monthly") {
+    monthPickerSection.classList.remove("hidden");
+    weekPickerSection.classList.add("hidden");
+  } else {
+    monthPickerSection.classList.add("hidden");
+    weekPickerSection.classList.remove("hidden");
+  }
+}
+
+function updateCustomShiftVisibility() {
+  if (shiftStyleSelect.value === "custom") {
+    customShiftSection.classList.remove("hidden");
+  } else {
+    customShiftSection.classList.add("hidden");
+  }
 }
 
 function getActiveShifts() {
@@ -91,14 +227,6 @@ function getActiveShifts() {
   }
 
   return customShifts;
-}
-
-function updateCustomShiftVisibility() {
-  if (shiftStyleSelect.value === "custom") {
-    customShiftSection.classList.remove("hidden");
-  } else {
-    customShiftSection.classList.add("hidden");
-  }
 }
 
 function renderShiftList() {
@@ -132,7 +260,6 @@ function renderShiftList() {
       customShifts[index - 1] = currentShift;
 
       saveData();
-
       renderShiftList();
       renderSchedule();
     });
@@ -147,7 +274,6 @@ function renderShiftList() {
       customShifts[index + 1] = currentShift;
 
       saveData();
-
       renderShiftList();
       renderSchedule();
     });
@@ -156,7 +282,6 @@ function renderShiftList() {
       customShifts.splice(index, 1);
 
       saveData();
-
       renderShiftList();
       renderSchedule();
     });
@@ -191,7 +316,6 @@ function renderCaregiverList() {
       });
 
       saveData();
-
       renderCaregiverList();
       renderSchedule();
     });
@@ -203,21 +327,45 @@ function renderCaregiverList() {
 function renderSchedule() {
   scheduleSection.innerHTML = "";
 
-  const selectedStartDay = weekStartSelect.value;
-  const orderedWeekDays = getOrderedWeekDays(selectedStartDay);
-  const lastDay = orderedWeekDays[orderedWeekDays.length - 1];
   const activeShifts = getActiveShifts();
+  const selectedView = scheduleViewSelect.value;
 
-  weekLabel.textContent = `${selectedStartDay} - ${lastDay}`;
+  let scheduleDays = [];
 
-  orderedWeekDays.forEach(function (dayName) {
+  if (selectedView === "monthly") {
+    scheduleTitle.textContent = "Monthly Schedule";
+
+    scheduleDays = getDaysInSelectedMonth();
+
+    const selectedMonth = monthPicker.value || getTodayMonthValue();
+    const [year, month] = selectedMonth.split("-").map(Number);
+
+    weekLabel.textContent = new Date(year, month - 1).toLocaleDateString(
+      "en-US",
+      {
+        month: "long",
+        year: "numeric",
+      },
+    );
+  } else {
+    scheduleTitle.textContent = "Weekly Schedule";
+
+    scheduleDays = getDaysInSelectedWeek();
+
+    const firstDay = scheduleDays[0].label;
+    const lastDay = scheduleDays[scheduleDays.length - 1].label;
+
+    weekLabel.textContent = `${firstDay} - ${lastDay}`;
+  }
+
+  scheduleDays.forEach(function (day) {
     const dayCard = document.createElement("div");
     dayCard.classList.add("day-card");
 
     let shiftRows = "";
 
     activeShifts.forEach(function (shiftName) {
-      const assignmentKey = `${dayName}-${shiftName}`;
+      const assignmentKey = `${day.key}-${shiftName}`;
       const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
 
       let caregiverOptions = `<option value="Open">Open</option>`;
@@ -234,9 +382,9 @@ function renderSchedule() {
         <div class="shift-row">
           <span class="shift-name">${shiftName}</span>
 
-          <select 
-            class="assignment-select" 
-            data-day="${dayName}" 
+          <select
+            class="assignment-select"
+            data-day="${day.key}"
             data-shift="${shiftName}"
           >
             ${caregiverOptions}
@@ -246,7 +394,7 @@ function renderSchedule() {
     });
 
     dayCard.innerHTML = `
-      <h3>${dayName}</h3>
+      <h3>${day.label}</h3>
       ${shiftRows}
     `;
 
@@ -288,7 +436,6 @@ addShiftButton.addEventListener("click", function () {
   customShiftInput.value = "";
 
   saveData();
-
   renderShiftList();
   renderSchedule();
 });
@@ -313,25 +460,64 @@ addCaregiverButton.addEventListener("click", function () {
   caregiverInput.value = "";
 
   saveData();
-
   renderCaregiverList();
   renderSchedule();
 });
 
 weekStartSelect.addEventListener("change", function () {
+  saveData();
   renderSchedule();
 });
 
 shiftStyleSelect.addEventListener("change", function () {
   updateCustomShiftVisibility();
+  saveData();
   renderSchedule();
+});
+
+scheduleViewSelect.addEventListener("change", function () {
+  updatePickerVisibility();
+  saveData();
+  renderSchedule();
+});
+
+monthPicker.addEventListener("change", function () {
+  saveData();
+  renderSchedule();
+});
+
+weekStartDateInput.addEventListener("change", function () {
+  saveData();
+  renderSchedule();
+});
+
+scheduleNoteInput.addEventListener("input", function () {
+  scheduleNote = scheduleNoteInput.value;
+  saveData();
+});
+
+clearScheduleButton.addEventListener("click", function () {
+  if (confirm("Are you sure you want to clear the schedule?")) {
+    scheduleAssignments = {};
+    saveData();
+    renderSchedule();
+  }
 });
 
 loadData();
 
+if (monthPicker.value === "") {
+  monthPicker.value = getTodayMonthValue();
+}
+
+if (weekStartDateInput.value === "") {
+  weekStartDateInput.value = getTodayDateValue();
+}
+
 scheduleNoteInput.value = scheduleNote;
 
 updateCustomShiftVisibility();
+updatePickerVisibility();
 renderShiftList();
 renderCaregiverList();
 renderSchedule();

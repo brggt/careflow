@@ -29,6 +29,27 @@
           <option>Sunday</option>
         </select>
 
+        <label for="schedule-view">Schedule view</label>
+        <select id="schedule-view">
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+
+        <div id="week-picker-section">
+          <label for="week-start-date">Date in selected week</label>
+          <input id="week-start-date" type="date" />
+        </div>
+
+        <div id="month-picker-section" class="hidden">
+          <label for="month-picker">Month</label>
+          <input id="month-picker" type="month" />
+        </div>
+
+        <div id="month-picker-section" class="hidden">
+          <label for="month-picker">Month</label>
+          <input id="month-picker" type="month" />
+        </div>
+
         <label for="shift-style">Shift style</label>
         <select id="shift-style">
           <option value="one">1 shift per day</option>
@@ -73,8 +94,10 @@
       </section>
 
       <section>
-        <h2>Weekly Schedule</h2>
+        <h2 id="schedule-title">Weekly Schedule</h2>
         <p id="week-label">Monday - Sunday</p>
+
+        <button id="clear-schedule-button" type="button">Clear Schedule</button>
       </section>
 
       <section id="schedule"></section>
