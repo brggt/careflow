@@ -12,6 +12,7 @@ let customShifts = ["Morning", "Afternoon", "Night"];
 let caregivers = [];
 let scheduleAssignments = {};
 let scheduleNote = "";
+let shiftTimeOverrides = {};
 
 let shiftTimes = {
   "Full Day": { start: "00:00", end: "00:00" },
@@ -74,6 +75,10 @@ function saveData() {
   );
   localStorage.setItem("kindshiftScheduleNote", scheduleNote);
   localStorage.setItem("kindshiftShiftTimes", JSON.stringify(shiftTimes));
+  localStorage.setItem(
+    "kindshiftShiftTimeOverrides",
+    JSON.stringify(shiftTimeOverrides),
+  );
 
   localStorage.setItem("kindshiftScheduleView", scheduleViewSelect.value);
   localStorage.setItem("kindshiftShiftStyle", shiftStyleSelect.value);
@@ -88,6 +93,9 @@ function loadData() {
   const savedAssignments = localStorage.getItem("kindshiftAssignments");
   const savedScheduleNote = localStorage.getItem("kindshiftScheduleNote");
   const savedShiftTimes = localStorage.getItem("kindshiftShiftTimes");
+  const savedShiftTimeOverrides = localStorage.getItem(
+    "kindshiftShiftTimeOverrides",
+  );
 
   if (savedCustomShifts) {
     customShifts = JSON.parse(savedCustomShifts);
@@ -110,6 +118,10 @@ function loadData() {
       ...shiftTimes,
       ...JSON.parse(savedShiftTimes),
     };
+  }
+
+  if (savedShiftTimeOverrides) {
+    shiftTimeOverrides = JSON.parse(savedShiftTimeOverrides);
   }
 
   const savedScheduleView = localStorage.getItem("kindshiftScheduleView");
@@ -164,6 +176,24 @@ function getDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+function getAppDayIndex(date) {
+  const jsDayIndex = date.getDay();
+
+  if (jsDayIndex === 0) {
+    return 6;
+  }
+
+  return jsDayIndex - 1;
+}
+
+function getOrderedWeekDays() {
+  const startIndex = allWeekDays.indexOf(weekStartSelect.value);
+  const firstPart = allWeekDays.slice(startIndex);
+  const secondPart = allWeekDays.slice(0, startIndex);
+
+  return firstPart.concat(secondPart);
+}
+
 function getDaysInSelectedWeek() {
   const selectedDate = weekStartDateInput.value || getTodayDateValue();
   const [year, month, day] = selectedDate.split("-").map(Number);
@@ -173,10 +203,9 @@ function getDaysInSelectedWeek() {
   const selectedStartDay = weekStartSelect.value;
   const selectedStartDayIndex = allWeekDays.indexOf(selectedStartDay);
 
-  const jsDayIndex = chosenDate.getDay();
-  const jsToAppDayIndex = jsDayIndex === 0 ? 6 : jsDayIndex - 1;
+  const chosenDayIndex = getAppDayIndex(chosenDate);
 
-  let daysToSubtract = jsToAppDayIndex - selectedStartDayIndex;
+  let daysToSubtract = chosenDayIndex - selectedStartDayIndex;
 
   if (daysToSubtract < 0) {
     daysToSubtract += 7;
@@ -198,6 +227,7 @@ function getDaysInSelectedWeek() {
         day: "numeric",
       }),
       key: getDateKey(currentDate),
+      date: currentDate,
     });
   }
 
@@ -221,6 +251,7 @@ function getDaysInSelectedMonth() {
         day: "numeric",
       }),
       key: getDateKey(date),
+      date: date,
     });
   }
 
@@ -258,6 +289,84 @@ function getShiftConfig(shiftName, defaultStart, defaultEnd) {
     start: shiftTimes[shiftName].start,
     end: shiftTimes[shiftName].end,
   };
+}
+
+function getShiftOverrideKey(dayKey, shiftName) {
+  return `${dayKey}__${shiftName}`;
+}
+
+function getShiftForDay(dayKey, shift) {
+  const overrideKey = getShiftOverrideKey(dayKey, shift.name);
+  const override = shiftTimeOverrides[overrideKey];
+
+  if (override) {
+    return {
+      ...shift,
+      start: override.start,
+      end: override.end,
+      hasOverride: true,
+    };
+  }
+
+  return {
+    ...shift,
+    hasOverride: false,
+  };
+}
+
+function isValidTimeValue(timeValue) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(timeValue);
+}
+
+function editShiftTimeForDate(dayKey, shift) {
+  const shiftForDay = getShiftForDay(dayKey, shift);
+
+  const newStart = prompt(
+    `Start time for ${shift.name} on ${dayKey}\nUse 24-hour format like 06:30`,
+    shiftForDay.start,
+  );
+
+  if (newStart === null) {
+    return;
+  }
+
+  if (!isValidTimeValue(newStart)) {
+    alert("Please use a valid time like 06:30 or 19:00.");
+    return;
+  }
+
+  const newEnd = prompt(
+    `End time for ${shift.name} on ${dayKey}\nUse 24-hour format like 13:00`,
+    shiftForDay.end,
+  );
+
+  if (newEnd === null) {
+    return;
+  }
+
+  if (!isValidTimeValue(newEnd)) {
+    alert("Please use a valid time like 13:00 or 07:00.");
+    return;
+  }
+
+  const overrideKey = getShiftOverrideKey(dayKey, shift.name);
+
+  shiftTimeOverrides[overrideKey] = {
+    start: newStart,
+    end: newEnd,
+  };
+
+  saveData();
+  renderSchedule();
+}
+
+function resetShiftTimeForDate(dayKey, shiftName) {
+  const overrideKey = getShiftOverrideKey(dayKey, shiftName);
+
+  delete shiftTimeOverrides[overrideKey];
+
+  saveData();
+  renderSchedule();
 }
 
 function getActiveShifts() {
@@ -381,6 +490,12 @@ function renderShiftList() {
       Object.keys(scheduleAssignments).forEach(function (assignmentKey) {
         if (assignmentKey.endsWith(`-${removedShiftName}`)) {
           delete scheduleAssignments[assignmentKey];
+        }
+      });
+
+      Object.keys(shiftTimeOverrides).forEach(function (overrideKey) {
+        if (overrideKey.endsWith(`__${removedShiftName}`)) {
+          delete shiftTimeOverrides[overrideKey];
         }
       });
 
@@ -568,7 +683,8 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
 
   scheduleDays.forEach(function (day) {
     activeShifts.forEach(function (shift) {
-      const shiftHours = getShiftHours(shift);
+      const shiftForDay = getShiftForDay(day.key, shift);
+      const shiftHours = getShiftHours(shiftForDay);
       const assignmentKey = `${day.key}-${shift.name}`;
       const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
 
@@ -579,9 +695,11 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
         openShiftsCount += 1;
 
         const availableShiftItem = document.createElement("li");
-        availableShiftItem.textContent = `${day.label} — ${shift.name} (${formatTime(
-          shift.start,
-        )} - ${formatTime(shift.end)}, ${formatHours(shiftHours)})`;
+        availableShiftItem.textContent = `${day.label} — ${
+          shift.name
+        } (${formatTime(shiftForDay.start)} - ${formatTime(
+          shiftForDay.end,
+        )}, ${formatHours(shiftHours)})`;
         availableShiftsList.append(availableShiftItem);
       } else {
         totalHoursCovered += shiftHours;
@@ -642,6 +760,289 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
   startAvailableShiftsAutoScroll();
 }
 
+function buildCaregiverOptions(assignedCaregiver) {
+  let caregiverOptions = `<option value="Open">Open</option>`;
+
+  caregivers.forEach(function (caregiverName) {
+    const selected = caregiverName === assignedCaregiver ? "selected" : "";
+
+    caregiverOptions += `
+      <option value="${caregiverName}" ${selected}>${caregiverName}</option>
+    `;
+  });
+
+  return caregiverOptions;
+}
+
+function renderWeeklySchedule(scheduleDays, activeShifts, selectedView) {
+  scheduleSection.className = "";
+  scheduleSection.classList.add("weekly-schedule-list");
+
+  const selectedDateKey = weekStartDateInput.value || getTodayDateValue();
+
+  scheduleDays.forEach(function (day) {
+    const dayCard = document.createElement("div");
+    dayCard.classList.add("day-card");
+
+    if (selectedView === "weekly" && day.key === selectedDateKey) {
+      dayCard.classList.add("selected-date-card");
+    }
+
+    let shiftRows = "";
+
+    activeShifts.forEach(function (shift) {
+      const assignmentKey = `${day.key}-${shift.name}`;
+      const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
+      const shiftForDay = getShiftForDay(day.key, shift);
+      const shiftHours = getShiftHours(shiftForDay);
+      const caregiverOptions = buildCaregiverOptions(assignedCaregiver);
+
+      const overrideBadge = shiftForDay.hasOverride
+        ? `<span class="time-override-badge">Custom time</span>`
+        : "";
+
+      const resetButton = shiftForDay.hasOverride
+        ? `
+          <button
+            class="reset-time-button"
+            type="button"
+            data-day="${day.key}"
+            data-shift="${shift.name}"
+          >
+            Reset
+          </button>
+        `
+        : "";
+
+      shiftRows += `
+        <div class="shift-row">
+          <div>
+            <span class="shift-name">${shift.name}</span>
+            <span class="shift-time">
+              ${formatTime(shiftForDay.start)} - ${formatTime(shiftForDay.end)}
+              · ${formatHours(shiftHours)}
+            </span>
+            ${overrideBadge}
+          </div>
+
+          <div class="shift-actions">
+            <select
+              class="assignment-select"
+              data-day="${day.key}"
+              data-shift="${shift.name}"
+            >
+              ${caregiverOptions}
+            </select>
+
+            <button
+              class="edit-time-button"
+              type="button"
+              data-day="${day.key}"
+              data-shift="${shift.name}"
+            >
+              Edit time
+            </button>
+
+            ${resetButton}
+          </div>
+        </div>
+      `;
+    });
+
+    const selectedBadge =
+      selectedView === "weekly" && day.key === selectedDateKey
+        ? `<span class="selected-badge">Selected date</span>`
+        : "";
+
+    dayCard.innerHTML = `
+      <div class="day-card-header">
+        <h3>${day.label}</h3>
+        ${selectedBadge}
+      </div>
+
+      ${shiftRows}
+    `;
+
+    dayCard.addEventListener("click", function (event) {
+      const clickedInsideControl = event.target.closest(
+        "select, button, input, textarea",
+      );
+
+      if (clickedInsideControl) {
+        return;
+      }
+
+      weekStartDateInput.value = day.key;
+
+      saveData();
+      renderSchedule();
+    });
+
+    scheduleSection.append(dayCard);
+  });
+}
+
+function renderMonthlySchedule(scheduleDays, activeShifts) {
+  scheduleSection.className = "";
+  scheduleSection.classList.add("monthly-schedule-grid");
+
+  const orderedWeekDays = getOrderedWeekDays();
+
+  orderedWeekDays.forEach(function (dayName) {
+    const weekdayHeader = document.createElement("div");
+    weekdayHeader.classList.add("month-weekday-header");
+    weekdayHeader.textContent = dayName.slice(0, 3);
+    scheduleSection.append(weekdayHeader);
+  });
+
+  if (scheduleDays.length > 0) {
+    const firstDate = scheduleDays[0].date;
+    const firstDayIndex = getAppDayIndex(firstDate);
+    const selectedStartIndex = allWeekDays.indexOf(weekStartSelect.value);
+
+    let blankDays = firstDayIndex - selectedStartIndex;
+
+    if (blankDays < 0) {
+      blankDays += 7;
+    }
+
+    for (let i = 0; i < blankDays; i++) {
+      const emptyDay = document.createElement("div");
+      emptyDay.classList.add("month-empty-day");
+      scheduleSection.append(emptyDay);
+    }
+  }
+
+  scheduleDays.forEach(function (day) {
+    const dayCard = document.createElement("div");
+    dayCard.classList.add("month-day-card");
+
+    const dayNumber = day.date.getDate();
+    const weekdayShort = day.date.toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+
+    let shiftRows = "";
+
+    activeShifts.forEach(function (shift) {
+      const assignmentKey = `${day.key}-${shift.name}`;
+      const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
+      const caregiverOptions = buildCaregiverOptions(assignedCaregiver);
+      const shiftForDay = getShiftForDay(day.key, shift);
+      const shiftHours = getShiftHours(shiftForDay);
+
+      const resetButton = shiftForDay.hasOverride
+        ? `
+          <button
+            class="reset-time-button month-reset-button"
+            type="button"
+            data-day="${day.key}"
+            data-shift="${shift.name}"
+          >
+            Reset
+          </button>
+        `
+        : "";
+
+      shiftRows += `
+        <div class="month-shift-row ${
+          shiftForDay.hasOverride ? "month-shift-custom" : ""
+        }">
+          <div class="month-shift-info">
+            <span class="month-shift-name">${shift.name}</span>
+            <span class="month-shift-time">${formatHours(shiftHours)}</span>
+          </div>
+
+          <select
+            class="assignment-select month-assignment-select"
+            data-day="${day.key}"
+            data-shift="${shift.name}"
+          >
+            ${caregiverOptions}
+          </select>
+
+          <button
+            class="edit-time-button month-time-button"
+            type="button"
+            data-day="${day.key}"
+            data-shift="${shift.name}"
+          >
+            Time
+          </button>
+
+          ${resetButton}
+        </div>
+      `;
+    });
+
+    dayCard.innerHTML = `
+      <div class="month-day-header">
+        <span class="month-date-number">${dayNumber}</span>
+        <span class="month-weekday">${weekdayShort}</span>
+      </div>
+
+      <div class="month-shifts">
+        ${shiftRows}
+      </div>
+    `;
+
+    scheduleSection.append(dayCard);
+  });
+}
+
+function attachAssignmentListeners(scheduleDays, activeShifts) {
+  const assignmentSelects = document.querySelectorAll(".assignment-select");
+
+  assignmentSelects.forEach(function (select) {
+    select.addEventListener("change", function () {
+      const dayName = select.dataset.day;
+      const shiftName = select.dataset.shift;
+      const assignmentKey = `${dayName}-${shiftName}`;
+
+      scheduleAssignments[assignmentKey] = select.value;
+
+      saveData();
+      renderCoverageSummary(scheduleDays, activeShifts);
+    });
+  });
+}
+
+function attachShiftTimeButtonListeners() {
+  const editTimeButtons = document.querySelectorAll(".edit-time-button");
+  const resetTimeButtons = document.querySelectorAll(".reset-time-button");
+
+  editTimeButtons.forEach(function (button) {
+    button.addEventListener("click", function (event) {
+      event.stopPropagation();
+
+      const dayKey = button.dataset.day;
+      const shiftName = button.dataset.shift;
+
+      const activeShifts = getActiveShifts();
+      const shift = activeShifts.find(function (activeShift) {
+        return activeShift.name === shiftName;
+      });
+
+      if (!shift) {
+        return;
+      }
+
+      editShiftTimeForDate(dayKey, shift);
+    });
+  });
+
+  resetTimeButtons.forEach(function (button) {
+    button.addEventListener("click", function (event) {
+      event.stopPropagation();
+
+      const dayKey = button.dataset.day;
+      const shiftName = button.dataset.shift;
+
+      resetShiftTimeForDate(dayKey, shiftName);
+    });
+  });
+}
+
 function renderSchedule() {
   scheduleSection.innerHTML = "";
 
@@ -667,6 +1068,8 @@ function renderSchedule() {
         year: "numeric",
       },
     );
+
+    renderMonthlySchedule(scheduleDays, activeShifts);
   } else {
     if (scheduleTitle) {
       scheduleTitle.textContent = "Weekly Schedule";
@@ -678,106 +1081,37 @@ function renderSchedule() {
     const lastDay = scheduleDays[scheduleDays.length - 1].label;
 
     weekLabel.textContent = `${firstDay} - ${lastDay}`;
+
+    renderWeeklySchedule(scheduleDays, activeShifts, selectedView);
   }
 
-  const selectedDateKey = weekStartDateInput.value || getTodayDateValue();
-
-  scheduleDays.forEach(function (day) {
-    const dayCard = document.createElement("div");
-    dayCard.classList.add("day-card");
-
-    if (selectedView === "weekly" && day.key === selectedDateKey) {
-      dayCard.classList.add("selected-date-card");
-    }
-
-    let shiftRows = "";
-
-    activeShifts.forEach(function (shift) {
-      const assignmentKey = `${day.key}-${shift.name}`;
-      const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
-      const shiftHours = getShiftHours(shift);
-
-      let caregiverOptions = `<option value="Open">Open</option>`;
-
-      caregivers.forEach(function (caregiverName) {
-        const selected = caregiverName === assignedCaregiver ? "selected" : "";
-
-        caregiverOptions += `
-          <option value="${caregiverName}" ${selected}>${caregiverName}</option>
-        `;
-      });
-
-      shiftRows += `
-        <div class="shift-row">
-          <div>
-            <span class="shift-name">${shift.name}</span>
-            <span class="shift-time">
-              ${formatTime(shift.start)} - ${formatTime(shift.end)}
-              · ${formatHours(shiftHours)}
-            </span>
-          </div>
-
-          <select
-            class="assignment-select"
-            data-day="${day.key}"
-            data-shift="${shift.name}"
-          >
-            ${caregiverOptions}
-          </select>
-        </div>
-      `;
-    });
-
-    const selectedBadge =
-      selectedView === "weekly" && day.key === selectedDateKey
-        ? `<span class="selected-badge">Selected date</span>`
-        : "";
-
-    dayCard.innerHTML = `
-      <div class="day-card-header">
-        <h3>${day.label}</h3>
-        ${selectedBadge}
-      </div>
-
-      ${shiftRows}
-    `;
-
-    if (selectedView === "weekly") {
-      dayCard.addEventListener("click", function (event) {
-        const clickedInsideControl = event.target.closest(
-          "select, button, input, textarea",
-        );
-
-        if (clickedInsideControl) {
-          return;
-        }
-
-        weekStartDateInput.value = day.key;
-
-        saveData();
-        renderSchedule();
-      });
-    }
-
-    scheduleSection.append(dayCard);
-  });
-
-  const assignmentSelects = document.querySelectorAll(".assignment-select");
-
-  assignmentSelects.forEach(function (select) {
-    select.addEventListener("change", function () {
-      const dayName = select.dataset.day;
-      const shiftName = select.dataset.shift;
-      const assignmentKey = `${dayName}-${shiftName}`;
-
-      scheduleAssignments[assignmentKey] = select.value;
-
-      saveData();
-      renderCoverageSummary(scheduleDays, activeShifts);
-    });
-  });
-
+  attachAssignmentListeners(scheduleDays, activeShifts);
+  attachShiftTimeButtonListeners();
   renderCoverageSummary(scheduleDays, activeShifts);
+}
+
+function addCaregiver() {
+  const newCaregiverName = caregiverInput.value.trim();
+
+  if (newCaregiverName === "") {
+    return;
+  }
+
+  const isDuplicate = caregivers.some(function (caregiverName) {
+    return caregiverName.toLowerCase() === newCaregiverName.toLowerCase();
+  });
+
+  if (isDuplicate) {
+    caregiverInput.value = "";
+    return;
+  }
+
+  caregivers.push(newCaregiverName);
+  caregiverInput.value = "";
+
+  saveData();
+  renderCaregiverList();
+  renderSchedule();
 }
 
 addShiftButton.addEventListener("click", function () {
@@ -811,29 +1145,12 @@ addShiftButton.addEventListener("click", function () {
   renderSchedule();
 });
 
-function addCaregiver() {
-  const newCaregiverName = caregiverInput.value.trim();
-
-  if (newCaregiverName === "") {
-    return;
+customShiftInput.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    addShiftButton.click();
   }
-
-  const isDuplicate = caregivers.some(function (caregiverName) {
-    return caregiverName.toLowerCase() === newCaregiverName.toLowerCase();
-  });
-
-  if (isDuplicate) {
-    caregiverInput.value = "";
-    return;
-  }
-
-  caregivers.push(newCaregiverName);
-  caregiverInput.value = "";
-
-  saveData();
-  renderCaregiverList();
-  renderSchedule();
-}
+});
 
 addCaregiverButton.addEventListener("click", function () {
   addCaregiver();

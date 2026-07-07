@@ -15,9 +15,18 @@
 
     <main>
       <section class="customize-card">
-        <h2>Settings</h2>
+        <div class="settings-header">
+          <div class="settings-title-group">
+            <h2 id="schedule-title">Weekly Schedule</h2>
+            <span id="week-label" class="week-pill">Monday - Sunday</span>
+          </div>
 
-        <details open>
+          <button id="clear-schedule-button" type="button">
+            Clear Schedule
+          </button>
+        </div>
+
+        <details>
           <summary>Schedule</summary>
 
           <label for="week-start">Week starts on</label>
@@ -56,7 +65,7 @@
             <option value="one">1 shift per day</option>
             <option value="two">2 shifts per day</option>
             <option value="three">3 shifts per day</option>
-            <option value="custom">custom shifts</option>
+            <option value="custom">Custom shifts</option>
           </select>
 
           <div id="custom-shift-section" class="custom-shift-section hidden">
@@ -106,11 +115,9 @@
         </details>
       </section>
 
-      <section>
-        <h2 id="schedule-title">Weekly Schedule</h2>
-        <p id="week-label">Monday - Sunday</p>
-
-        <button id="clear-schedule-button" type="button">Clear Schedule</button>
+      <section class="hours-card">
+        <h2>Caregiver Hours</h2>
+        <ul id="caregiver-hours-list"></ul>
       </section>
 
       <section class="summary-card">
@@ -148,11 +155,6 @@
             <div id="coverage-progress-fill"></div>
           </div>
         </div>
-      </section>
-
-      <section class="hours-card">
-        <h2>Caregiver Hours</h2>
-        <ul id="caregiver-hours-list"></ul>
       </section>
 
       <section id="schedule"></section>
