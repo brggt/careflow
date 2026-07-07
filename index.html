@@ -3,13 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kindshift</title>
+    <title>KindShift</title>
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
     <header>
-      <title>kindshift</title>
       <h1>kindshift</h1>
       <p>simple caregiving schedules for care teams</p>
     </header>
@@ -69,6 +68,15 @@
           <ul id="shift-list"></ul>
         </div>
 
+        <div class="shift-times-section">
+          <h3>Shift Times</h3>
+          <p class="helper-text">
+            Change the start and end time for each shift.
+          </p>
+
+          <div id="shift-time-list"></div>
+        </div>
+
         <div class="caregiver-section">
           <label for="caregiver-name">Caregiver name</label>
 
@@ -93,6 +101,40 @@
         <p id="week-label">Monday - Sunday</p>
 
         <button id="clear-schedule-button" type="button">Clear Schedule</button>
+      </section>
+
+      <section class="summary-card">
+        <h2>Coverage Summary</h2>
+
+        <div class="summary-grid">
+          <div>
+            <p>Total hours needed</p>
+            <strong id="total-hours-needed">0</strong>
+          </div>
+
+          <div>
+            <p>Total hours covered</p>
+            <strong id="total-hours-covered">0</strong>
+          </div>
+
+          <div>
+            <p>Open hours</p>
+            <strong id="open-hours">0</strong>
+          </div>
+
+          <div>
+            <p>Available shifts</p>
+            <strong id="open-shifts-count">0</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="hours-card">
+        <h2>Caregiver Hours</h2>
+        <ul id="caregiver-hours-list"></ul>
+
+        <h3>Available Shifts</h3>
+        <ul id="available-shifts-list"></ul>
       </section>
 
       <section id="schedule"></section>

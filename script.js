@@ -13,6 +13,14 @@ let caregivers = [];
 let scheduleAssignments = {};
 let scheduleNote = "";
 
+let shiftTimes = {
+  "Full Day": { start: "00:00", end: "00:00" },
+  Day: { start: "07:00", end: "19:00" },
+  Night: { start: "19:00", end: "07:00" },
+  Morning: { start: "06:30", end: "13:00" },
+  Afternoon: { start: "13:00", end: "19:00" },
+};
+
 const scheduleSection = document.querySelector("#schedule");
 
 const customShiftInput = document.querySelector("#custom-shift-name");
@@ -40,6 +48,15 @@ const clearScheduleButton = document.querySelector("#clear-schedule-button");
 
 const scheduleTitle = document.querySelector("#schedule-title");
 
+const shiftTimeList = document.querySelector("#shift-time-list");
+
+const totalHoursNeededElement = document.querySelector("#total-hours-needed");
+const totalHoursCoveredElement = document.querySelector("#total-hours-covered");
+const openHoursElement = document.querySelector("#open-hours");
+const openShiftsCountElement = document.querySelector("#open-shifts-count");
+const caregiverHoursList = document.querySelector("#caregiver-hours-list");
+const availableShiftsList = document.querySelector("#available-shifts-list");
+
 function saveData() {
   localStorage.setItem("kindshiftCustomShifts", JSON.stringify(customShifts));
   localStorage.setItem("kindshiftCaregivers", JSON.stringify(caregivers));
@@ -48,6 +65,7 @@ function saveData() {
     JSON.stringify(scheduleAssignments),
   );
   localStorage.setItem("kindshiftScheduleNote", scheduleNote);
+  localStorage.setItem("kindshiftShiftTimes", JSON.stringify(shiftTimes));
 
   localStorage.setItem("kindshiftScheduleView", scheduleViewSelect.value);
   localStorage.setItem("kindshiftShiftStyle", shiftStyleSelect.value);
@@ -61,6 +79,7 @@ function loadData() {
   const savedCaregivers = localStorage.getItem("kindshiftCaregivers");
   const savedAssignments = localStorage.getItem("kindshiftAssignments");
   const savedScheduleNote = localStorage.getItem("kindshiftScheduleNote");
+  const savedShiftTimes = localStorage.getItem("kindshiftShiftTimes");
 
   if (savedCustomShifts) {
     customShifts = JSON.parse(savedCustomShifts);
@@ -76,6 +95,13 @@ function loadData() {
 
   if (savedScheduleNote) {
     scheduleNote = savedScheduleNote;
+  }
+
+  if (savedShiftTimes) {
+    shiftTimes = {
+      ...shiftTimes,
+      ...JSON.parse(savedShiftTimes),
+    };
   }
 
   const savedScheduleView = localStorage.getItem("kindshiftScheduleView");
@@ -140,7 +166,6 @@ function getDaysInSelectedWeek() {
   const selectedStartDayIndex = allWeekDays.indexOf(selectedStartDay);
 
   const jsDayIndex = chosenDate.getDay();
-
   const jsToAppDayIndex = jsDayIndex === 0 ? 6 : jsDayIndex - 1;
 
   let daysToSubtract = jsToAppDayIndex - selectedStartDayIndex;
@@ -212,34 +237,80 @@ function updateCustomShiftVisibility() {
   }
 }
 
+function getShiftConfig(shiftName, defaultStart, defaultEnd) {
+  if (!shiftTimes[shiftName]) {
+    shiftTimes[shiftName] = {
+      start: defaultStart,
+      end: defaultEnd,
+    };
+  }
+
+  return {
+    name: shiftName,
+    start: shiftTimes[shiftName].start,
+    end: shiftTimes[shiftName].end,
+  };
+}
+
 function getActiveShifts() {
   const selectedShiftStyle = shiftStyleSelect.value;
 
   if (selectedShiftStyle === "one") {
-    return [{ name: "Full Day", time: "All day" }];
+    return [getShiftConfig("Full Day", "00:00", "00:00")];
   }
 
   if (selectedShiftStyle === "two") {
     return [
-      { name: "Day", time: "7:00 AM - 7:00 PM" },
-      { name: "Night", time: "7:00 PM - 7:00 AM" },
+      getShiftConfig("Day", "07:00", "19:00"),
+      getShiftConfig("Night", "19:00", "07:00"),
     ];
   }
 
   if (selectedShiftStyle === "three") {
     return [
-      { name: "Morning", time: "6:30 AM - 1:00 PM" },
-      { name: "Afternoon", time: "1:00 PM - 7:00 PM" },
-      { name: "Night", time: "7:00 PM - 6:30 AM" },
+      getShiftConfig("Morning", "06:30", "13:00"),
+      getShiftConfig("Afternoon", "13:00", "19:00"),
+      getShiftConfig("Night", "19:00", "06:30"),
     ];
   }
 
   return customShifts.map(function (shiftName) {
-    return {
-      name: shiftName,
-      time: "Custom time",
-    };
+    return getShiftConfig(shiftName, "09:00", "17:00");
   });
+}
+
+function formatTime(timeValue) {
+  const [hourText, minuteText] = timeValue.split(":");
+  const hour = Number(hourText);
+  const minute = minuteText;
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+
+  return `${displayHour}:${minute} ${period}`;
+}
+
+function getShiftHours(shift) {
+  const [startHour, startMinute] = shift.start.split(":").map(Number);
+  const [endHour, endMinute] = shift.end.split(":").map(Number);
+
+  const startMinutes = startHour * 60 + startMinute;
+  let endMinutes = endHour * 60 + endMinute;
+
+  if (endMinutes <= startMinutes) {
+    endMinutes += 24 * 60;
+  }
+
+  const totalMinutes = endMinutes - startMinutes;
+
+  return totalMinutes / 60;
+}
+
+function formatHours(hours) {
+  if (Number.isInteger(hours)) {
+    return `${hours} hrs`;
+  }
+
+  return `${hours.toFixed(1)} hrs`;
 }
 
 function renderShiftList() {
@@ -274,6 +345,7 @@ function renderShiftList() {
 
       saveData();
       renderShiftList();
+      renderShiftTimeList();
       renderSchedule();
     });
 
@@ -288,18 +360,83 @@ function renderShiftList() {
 
       saveData();
       renderShiftList();
+      renderShiftTimeList();
       renderSchedule();
     });
 
     removeButton.addEventListener("click", function () {
+      const removedShiftName = customShifts[index];
+
       customShifts.splice(index, 1);
+      delete shiftTimes[removedShiftName];
+
+      Object.keys(scheduleAssignments).forEach(function (assignmentKey) {
+        if (assignmentKey.endsWith(`-${removedShiftName}`)) {
+          delete scheduleAssignments[assignmentKey];
+        }
+      });
 
       saveData();
       renderShiftList();
+      renderShiftTimeList();
       renderSchedule();
     });
 
     shiftList.append(shiftItem);
+  });
+}
+
+function renderShiftTimeList() {
+  shiftTimeList.innerHTML = "";
+
+  const activeShifts = getActiveShifts();
+
+  activeShifts.forEach(function (shift) {
+    const shiftTimeRow = document.createElement("div");
+    shiftTimeRow.classList.add("shift-time-row");
+
+    shiftTimeRow.innerHTML = `
+      <strong>${shift.name}</strong>
+
+      <input
+        class="shift-start-time"
+        type="time"
+        value="${shift.start}"
+        data-shift="${shift.name}"
+        data-time-type="start"
+      />
+
+      <input
+        class="shift-end-time"
+        type="time"
+        value="${shift.end}"
+        data-shift="${shift.name}"
+        data-time-type="end"
+      />
+    `;
+
+    shiftTimeList.append(shiftTimeRow);
+  });
+
+  const timeInputs = document.querySelectorAll(".shift-time-row input");
+
+  timeInputs.forEach(function (input) {
+    input.addEventListener("change", function () {
+      const shiftName = input.dataset.shift;
+      const timeType = input.dataset.timeType;
+
+      if (!shiftTimes[shiftName]) {
+        shiftTimes[shiftName] = {
+          start: "09:00",
+          end: "17:00",
+        };
+      }
+
+      shiftTimes[shiftName][timeType] = input.value;
+
+      saveData();
+      renderSchedule();
+    });
   });
 }
 
@@ -335,6 +472,81 @@ function renderCaregiverList() {
 
     caregiverList.append(caregiverItem);
   });
+}
+
+function getScheduleDaysForCurrentView() {
+  if (scheduleViewSelect.value === "monthly") {
+    return getDaysInSelectedMonth();
+  }
+
+  return getDaysInSelectedWeek();
+}
+
+function renderCoverageSummary(scheduleDays, activeShifts) {
+  let totalHoursNeeded = 0;
+  let totalHoursCovered = 0;
+  let openHours = 0;
+  let openShiftsCount = 0;
+
+  const caregiverHours = {};
+
+  caregivers.forEach(function (caregiverName) {
+    caregiverHours[caregiverName] = 0;
+  });
+
+  availableShiftsList.innerHTML = "";
+
+  scheduleDays.forEach(function (day) {
+    activeShifts.forEach(function (shift) {
+      const shiftHours = getShiftHours(shift);
+      const assignmentKey = `${day.key}-${shift.name}`;
+      const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
+
+      totalHoursNeeded += shiftHours;
+
+      if (assignedCaregiver === "Open") {
+        openHours += shiftHours;
+        openShiftsCount += 1;
+
+        const availableShiftItem = document.createElement("li");
+        availableShiftItem.textContent = `${day.label} — ${shift.name} (${formatTime(shift.start)} - ${formatTime(shift.end)}, ${formatHours(shiftHours)})`;
+        availableShiftsList.append(availableShiftItem);
+      } else {
+        totalHoursCovered += shiftHours;
+
+        if (!caregiverHours[assignedCaregiver]) {
+          caregiverHours[assignedCaregiver] = 0;
+        }
+
+        caregiverHours[assignedCaregiver] += shiftHours;
+      }
+    });
+  });
+
+  totalHoursNeededElement.textContent = formatHours(totalHoursNeeded);
+  totalHoursCoveredElement.textContent = formatHours(totalHoursCovered);
+  openHoursElement.textContent = formatHours(openHours);
+  openShiftsCountElement.textContent = openShiftsCount;
+
+  caregiverHoursList.innerHTML = "";
+
+  if (caregivers.length === 0) {
+    const emptyCaregiverItem = document.createElement("li");
+    emptyCaregiverItem.textContent = "No caregivers added yet.";
+    caregiverHoursList.append(emptyCaregiverItem);
+  } else {
+    caregivers.forEach(function (caregiverName) {
+      const caregiverHoursItem = document.createElement("li");
+      caregiverHoursItem.textContent = `${caregiverName}: ${formatHours(caregiverHours[caregiverName] || 0)}`;
+      caregiverHoursList.append(caregiverHoursItem);
+    });
+  }
+
+  if (openShiftsCount === 0) {
+    const noOpenShiftsItem = document.createElement("li");
+    noOpenShiftsItem.textContent = "No available shifts.";
+    availableShiftsList.append(noOpenShiftsItem);
+  }
 }
 
 function renderSchedule() {
@@ -390,6 +602,7 @@ function renderSchedule() {
     activeShifts.forEach(function (shift) {
       const assignmentKey = `${day.key}-${shift.name}`;
       const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
+      const shiftHours = getShiftHours(shift);
 
       let caregiverOptions = `<option value="Open">Open</option>`;
 
@@ -405,7 +618,10 @@ function renderSchedule() {
         <div class="shift-row">
           <div>
             <span class="shift-name">${shift.name}</span>
-            <span class="shift-time">${shift.time}</span>
+            <span class="shift-time">
+              ${formatTime(shift.start)} - ${formatTime(shift.end)}
+              · ${formatHours(shiftHours)}
+            </span>
           </div>
 
           <select
@@ -447,8 +663,11 @@ function renderSchedule() {
       scheduleAssignments[assignmentKey] = select.value;
 
       saveData();
+      renderCoverageSummary(scheduleDays, activeShifts);
     });
   });
+
+  renderCoverageSummary(scheduleDays, activeShifts);
 }
 
 addShiftButton.addEventListener("click", function () {
@@ -468,10 +687,17 @@ addShiftButton.addEventListener("click", function () {
   }
 
   customShifts.push(newShiftName);
+
+  shiftTimes[newShiftName] = {
+    start: "09:00",
+    end: "17:00",
+  };
+
   customShiftInput.value = "";
 
   saveData();
   renderShiftList();
+  renderShiftTimeList();
   renderSchedule();
 });
 
@@ -506,6 +732,7 @@ weekStartSelect.addEventListener("change", function () {
 
 shiftStyleSelect.addEventListener("change", function () {
   updateCustomShiftVisibility();
+  renderShiftTimeList();
   saveData();
   renderSchedule();
 });
@@ -555,4 +782,5 @@ updateCustomShiftVisibility();
 updatePickerVisibility();
 renderShiftList();
 renderCaregiverList();
+renderShiftTimeList();
 renderSchedule();
