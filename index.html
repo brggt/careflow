@@ -15,10 +15,10 @@
 
     <main>
       <section class="customize-card">
-        <h2>Customize Schedule</h2>
+        <h2>Settings</h2>
 
         <details open>
-          <summary>Schedule Setup</summary>
+          <summary>Schedule</summary>
 
           <label for="week-start">Week starts on</label>
           <select id="week-start">
@@ -46,6 +46,10 @@
             <label for="month-picker">Month</label>
             <input id="month-picker" type="month" />
           </div>
+        </details>
+
+        <details>
+          <summary>Shifts</summary>
 
           <label for="shift-style">Shift style</label>
           <select id="shift-style">
@@ -54,10 +58,6 @@
             <option value="three">3 shifts per day</option>
             <option value="custom">custom shifts</option>
           </select>
-        </details>
-
-        <details>
-          <summary>Shift Times</summary>
 
           <div id="custom-shift-section" class="custom-shift-section hidden">
             <label for="custom-shift-name">Custom shift name</label>
@@ -78,7 +78,7 @@
           <div class="shift-times-section">
             <h3>Shift Times</h3>
             <p class="helper-text">
-              Change the start and end time for each shift.
+              Set the start and end time for each shift.
             </p>
 
             <div id="shift-time-list"></div>
@@ -89,7 +89,8 @@
           <summary>Caregivers</summary>
 
           <div class="caregiver-section">
-            <label for="caregiver-name">Caregiver name</label>
+            <h3>Caregiver list</h3>
+            <ul id="caregiver-list"></ul>
 
             <div class="caregiver-controls">
               <input
@@ -101,9 +102,6 @@
                 Add Caregiver
               </button>
             </div>
-
-            <h3>Caregivers</h3>
-            <ul id="caregiver-list"></ul>
           </div>
         </details>
       </section>

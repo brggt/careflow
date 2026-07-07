@@ -527,6 +527,31 @@ function renderCaregiverList() {
   });
 }
 
+function startAvailableShiftsAutoScroll() {
+  clearInterval(availableShiftsScrollInterval);
+
+  if (!availableShiftsBody) {
+    return;
+  }
+
+  availableShiftsBody.scrollTop = 0;
+
+  availableShiftsScrollInterval = setInterval(function () {
+    const maxScroll =
+      availableShiftsBody.scrollHeight - availableShiftsBody.clientHeight;
+
+    if (maxScroll <= 0) {
+      return;
+    }
+
+    if (availableShiftsBody.scrollTop >= maxScroll) {
+      availableShiftsBody.scrollTop = 0;
+    } else {
+      availableShiftsBody.scrollTop += 1;
+    }
+  }, 70);
+}
+
 function renderCoverageSummary(scheduleDays, activeShifts) {
   let totalHoursNeeded = 0;
   let totalHoursCovered = 0;
@@ -554,7 +579,9 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
         openShiftsCount += 1;
 
         const availableShiftItem = document.createElement("li");
-        availableShiftItem.textContent = `${day.label} — ${shift.name} (${formatTime(shift.start)} - ${formatTime(shift.end)}, ${formatHours(shiftHours)})`;
+        availableShiftItem.textContent = `${day.label} — ${shift.name} (${formatTime(
+          shift.start,
+        )} - ${formatTime(shift.end)}, ${formatHours(shiftHours)})`;
         availableShiftsList.append(availableShiftItem);
       } else {
         totalHoursCovered += shiftHours;
@@ -599,7 +626,9 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
   } else {
     caregivers.forEach(function (caregiverName) {
       const caregiverHoursItem = document.createElement("li");
-      caregiverHoursItem.textContent = `${caregiverName}: ${formatHours(caregiverHours[caregiverName] || 0)}`;
+      caregiverHoursItem.textContent = `${caregiverName}: ${formatHours(
+        caregiverHours[caregiverName] || 0,
+      )}`;
       caregiverHoursList.append(caregiverHoursItem);
     });
   }
@@ -609,31 +638,8 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
     noOpenShiftsItem.textContent = "No available shifts.";
     availableShiftsList.append(noOpenShiftsItem);
   }
-}
 
-function startAvailableShiftsAutoScroll() {
-  clearInterval(availableShiftsScrollInterval);
-
-  if (!availableShiftsBody) {
-    return;
-  }
-
-  availableShiftsBody.scrollTop = 0;
-
-  availableShiftsScrollInterval = setInterval(function () {
-    const maxScroll =
-      availableShiftsBody.scrollHeight - availableShiftsBody.clientHeight;
-
-    if (maxScroll <= 0) {
-      return;
-    }
-
-    if (availableShiftsBody.scrollTop >= maxScroll) {
-      availableShiftsBody.scrollTop = 0;
-    } else {
-      availableShiftsBody.scrollTop += 1;
-    }
-  }, 70);
+  startAvailableShiftsAutoScroll();
 }
 
 function renderSchedule() {
@@ -772,14 +778,6 @@ function renderSchedule() {
   });
 
   renderCoverageSummary(scheduleDays, activeShifts);
-
-  if (openShiftsCount === 0) {
-    const noOpenShiftsItem = document.createElement("li");
-    noOpenShiftsItem.textContent = "No available shifts.";
-    availableShiftsList.append(noOpenShiftsItem);
-  }
-
-  startAvailableShiftsAutoScroll();
 }
 
 addShiftButton.addEventListener("click", function () {
@@ -813,7 +811,7 @@ addShiftButton.addEventListener("click", function () {
   renderSchedule();
 });
 
-addCaregiverButton.addEventListener("click", function () {
+function addCaregiver() {
   const newCaregiverName = caregiverInput.value.trim();
 
   if (newCaregiverName === "") {
@@ -835,6 +833,17 @@ addCaregiverButton.addEventListener("click", function () {
   saveData();
   renderCaregiverList();
   renderSchedule();
+}
+
+addCaregiverButton.addEventListener("click", function () {
+  addCaregiver();
+});
+
+caregiverInput.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    addCaregiver();
+  }
 });
 
 weekStartSelect.addEventListener("change", function () {

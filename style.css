@@ -223,6 +223,101 @@ button:active {
   margin-top: -3px;
 }
 
+/* settings accordion */
+
+.customize-card > h2 {
+  margin-bottom: 18px;
+}
+
+.customize-card details {
+  margin-top: 12px;
+  border-radius: 20px;
+}
+
+.customize-card summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 18px;
+  border-radius: 18px;
+  font-weight: 700;
+  color: var(--text);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.07)
+  );
+  border: 1px solid rgba(143, 216, 255, 0.24);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.22s ease;
+  position: relative;
+}
+
+.customize-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.customize-card summary::marker {
+  content: "";
+}
+
+.customize-card summary::after {
+  content: "⌄";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--blue);
+  font-size: 18px;
+  transition: transform 0.22s ease;
+}
+
+.customize-card details[open] summary::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.customize-card summary:hover {
+  border-color: rgba(143, 216, 255, 0.8);
+  box-shadow:
+    0 0 0 4px rgba(143, 216, 255, 0.12),
+    0 0 34px rgba(143, 216, 255, 0.28),
+    0 18px 45px rgba(0, 0, 0, 0.28);
+  transform: translateY(-1px);
+}
+
+.customize-card details[open] summary {
+  border-color: rgba(143, 216, 255, 0.65);
+  background: linear-gradient(
+    145deg,
+    rgba(143, 216, 255, 0.22),
+    rgba(255, 255, 255, 0.08)
+  );
+  box-shadow:
+    0 0 0 1px rgba(143, 216, 255, 0.24),
+    0 0 35px rgba(143, 216, 255, 0.18);
+}
+
+.customize-card details > *:not(summary) {
+  margin-left: 4px;
+  margin-right: 4px;
+  animation: accordionFade 0.2s ease;
+}
+
+@keyframes accordionFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* inner settings sections */
+
 .custom-shift-section,
 .caregiver-section,
 .shift-times-section {
@@ -291,6 +386,8 @@ button:active {
   font-size: 12px;
 }
 
+/* shift times */
+
 .shift-time-row {
   display: grid;
   grid-template-columns: 1fr 130px 130px;
@@ -310,6 +407,8 @@ input[type="month"] {
   padding: 11px 12px;
   font-size: 14px;
 }
+
+/* schedule cards */
 
 .day-card {
   background: linear-gradient(
@@ -393,12 +492,16 @@ input[type="month"] {
   border-radius: 999px;
 }
 
+/* schedule header */
+
 #clear-schedule-button {
   margin-top: 12px;
   border-radius: 999px;
   padding: 10px 15px;
   font-size: 14px;
 }
+
+/* coverage summary */
 
 .summary-grid {
   display: grid;
@@ -454,152 +557,7 @@ input[type="month"] {
   box-shadow: 0 0 18px rgba(143, 216, 255, 0.5);
 }
 
-@media (max-width: 600px) {
-  main {
-    padding: 12px;
-  }
-
-  header h1 {
-    font-size: 38px;
-  }
-
-  section,
-  .customize-card,
-  .notes-card,
-  .summary-card,
-  .hours-card,
-  .day-card {
-    border-radius: 24px;
-    padding: 18px;
-  }
-
-  .custom-shift-controls,
-  .caregiver-controls {
-    flex-direction: column;
-  }
-
-  .shift-time-row {
-    grid-template-columns: 1fr;
-  }
-
-  .shift-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .assignment-select {
-    width: 100%;
-  }
-
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .shift-list-item,
-  .caregiver-list-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-header {
-  padding: 32px 18px;
-}
-
-.hero-banner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 34px;
-  border-radius: 34px;
-  background:
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(143, 216, 255, 0.22),
-      transparent 30%
-    ),
-    linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.15),
-      rgba(255, 255, 255, 0.06)
-    );
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow:
-    0 30px 90px rgba(0, 0, 0, 0.38),
-    0 0 45px rgba(143, 216, 255, 0.12);
-  backdrop-filter: blur(26px) saturate(155%);
-  -webkit-backdrop-filter: blur(26px) saturate(155%);
-}
-
-.hero-logo {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.logo-mark {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 30px;
-  font-weight: 750;
-  color: white;
-  background:
-    radial-gradient(
-      circle at 50% 45%,
-      rgba(255, 213, 160, 0.8),
-      transparent 28%
-    ),
-    linear-gradient(145deg, rgba(143, 216, 255, 0.35), rgba(30, 64, 175, 0.28));
-  border: 1px solid rgba(143, 216, 255, 0.45);
-  box-shadow:
-    0 0 28px rgba(143, 216, 255, 0.3),
-    inset 0 0 24px rgba(255, 255, 255, 0.12);
-}
-
-.hero-logo h1 {
-  margin: 0;
-  font-size: 42px;
-}
-
-.hero-logo p {
-  margin: 4px 0 0;
-  color: var(--muted);
-}
-
-.hero-text {
-  margin-top: 42px;
-  max-width: 620px;
-}
-
-.hero-text h2 {
-  font-size: 52px;
-  line-height: 1;
-  margin: 0;
-  letter-spacing: -1.8px;
-}
-
-.hero-text p {
-  color: var(--muted);
-  font-size: 18px;
-  max-width: 560px;
-}
-
-@media (max-width: 600px) {
-  .hero-banner {
-    padding: 24px;
-    border-radius: 28px;
-  }
-
-  .hero-logo h1 {
-    font-size: 34px;
-  }
-
-  .hero-text h2 {
-    font-size: 40px;
-  }
-}
+/* available shifts toast */
 
 .available-shifts-toast {
   position: fixed;
@@ -672,11 +630,169 @@ header {
   line-height: 1.35;
 }
 
+/* mobile */
+
 @media (max-width: 700px) {
   .available-shifts-toast {
     left: 12px;
     right: 12px;
     bottom: 12px;
     width: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  main {
+    padding: 12px;
+  }
+
+  header h1 {
+    font-size: 38px;
+  }
+
+  section,
+  .customize-card,
+  .notes-card,
+  .summary-card,
+  .hours-card,
+  .day-card {
+    border-radius: 24px;
+    padding: 18px;
+  }
+
+  .custom-shift-controls,
+  .caregiver-controls {
+    flex-direction: column;
+  }
+
+  .shift-time-row {
+    grid-template-columns: 1fr;
+  }
+
+  .shift-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .assignment-select {
+    width: 100%;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shift-list-item,
+  .caregiver-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* cleaner settings accordion */
+
+.customize-card summary {
+  font-size: 14px;
+  padding: 14px 18px;
+  letter-spacing: 0;
+}
+
+.customize-card details {
+  padding: 0;
+  border-radius: 22px;
+  transition: all 0.2s ease;
+}
+
+.customize-card details[open] {
+  padding: 12px;
+  margin-top: 16px;
+  background: rgba(143, 216, 255, 0.075);
+  border: 1px solid rgba(143, 216, 255, 0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 28px rgba(143, 216, 255, 0.1);
+}
+
+.customize-card details[open] summary {
+  margin-bottom: 12px;
+  background: linear-gradient(
+    145deg,
+    rgba(143, 216, 255, 0.26),
+    rgba(255, 255, 255, 0.08)
+  );
+  border-color: rgba(143, 216, 255, 0.75);
+}
+
+.customize-card details:not([open]) summary {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.055)
+  );
+  opacity: 0.9;
+}
+
+/* make form text less huge */
+
+select,
+input,
+textarea {
+  font-size: 14px;
+}
+
+label {
+  font-size: 12px;
+}
+
+.customize-card h2 {
+  font-size: 22px;
+}
+
+.customize-card h3 {
+  font-size: 15px;
+}
+
+/* make shift controls more even */
+
+.shift-list-buttons button {
+  min-width: 42px;
+  height: 38px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-shift-button {
+  min-width: 82px;
+}
+
+.shift-time-row {
+  display: grid;
+  grid-template-columns: 1fr 140px 140px;
+  gap: 12px;
+  align-items: center;
+}
+
+.shift-time-row input[type="time"] {
+  width: 140px;
+  height: 46px;
+  text-align: center;
+  font-weight: 650;
+  letter-spacing: 0.5px;
+}
+
+/* on smaller screens, keep the time boxes matching */
+@media (max-width: 600px) {
+  .shift-time-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .shift-time-row strong {
+    grid-column: 1 / -1;
+  }
+
+  .shift-time-row input[type="time"] {
+    width: 100%;
   }
 }
