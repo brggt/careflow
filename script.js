@@ -57,6 +57,14 @@ const openShiftsCountElement = document.querySelector("#open-shifts-count");
 const caregiverHoursList = document.querySelector("#caregiver-hours-list");
 const availableShiftsList = document.querySelector("#available-shifts-list");
 
+const coveragePercentElement = document.querySelector("#coverage-percent");
+const coverageProgressFill = document.querySelector("#coverage-progress-fill");
+
+const toastOpenShiftsCount = document.querySelector("#toast-open-shifts-count");
+const availableShiftsBody = document.querySelector(".available-shifts-body");
+
+let availableShiftsScrollInterval;
+
 function saveData() {
   localStorage.setItem("kindshiftCustomShifts", JSON.stringify(customShifts));
   localStorage.setItem("kindshiftCaregivers", JSON.stringify(caregivers));
@@ -449,12 +457,57 @@ function renderCaregiverList() {
 
     caregiverItem.innerHTML = `
       <span>${caregiverName}</span>
-      <button class="remove-caregiver-button" type="button">Remove</button>
+
+      <div class="caregiver-list-buttons">
+        <button class="edit-caregiver-button" type="button">Edit</button>
+        <button class="remove-caregiver-button" type="button">Remove</button>
+      </div>
     `;
 
+    const editButton = caregiverItem.querySelector(".edit-caregiver-button");
     const removeButton = caregiverItem.querySelector(
       ".remove-caregiver-button",
     );
+
+    editButton.addEventListener("click", function () {
+      const updatedName = prompt("Edit caregiver name:", caregiverName);
+
+      if (updatedName === null) {
+        return;
+      }
+
+      const trimmedName = updatedName.trim();
+
+      if (trimmedName === "") {
+        return;
+      }
+
+      const isDuplicate = caregivers.some(
+        function (existingName, existingIndex) {
+          return (
+            existingIndex !== index &&
+            existingName.toLowerCase() === trimmedName.toLowerCase()
+          );
+        },
+      );
+
+      if (isDuplicate) {
+        alert("That caregiver name already exists.");
+        return;
+      }
+
+      caregivers[index] = trimmedName;
+
+      Object.keys(scheduleAssignments).forEach(function (assignmentKey) {
+        if (scheduleAssignments[assignmentKey] === caregiverName) {
+          scheduleAssignments[assignmentKey] = trimmedName;
+        }
+      });
+
+      saveData();
+      renderCaregiverList();
+      renderSchedule();
+    });
 
     removeButton.addEventListener("click", function () {
       caregivers.splice(index, 1);
@@ -472,14 +525,6 @@ function renderCaregiverList() {
 
     caregiverList.append(caregiverItem);
   });
-}
-
-function getScheduleDaysForCurrentView() {
-  if (scheduleViewSelect.value === "monthly") {
-    return getDaysInSelectedMonth();
-  }
-
-  return getDaysInSelectedWeek();
 }
 
 function renderCoverageSummary(scheduleDays, activeShifts) {
@@ -528,6 +573,23 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
   openHoursElement.textContent = formatHours(openHours);
   openShiftsCountElement.textContent = openShiftsCount;
 
+  if (toastOpenShiftsCount) {
+    toastOpenShiftsCount.textContent = openShiftsCount;
+  }
+
+  if (coveragePercentElement && coverageProgressFill) {
+    let coveragePercent = 0;
+
+    if (totalHoursNeeded > 0) {
+      coveragePercent = Math.round(
+        (totalHoursCovered / totalHoursNeeded) * 100,
+      );
+    }
+
+    coveragePercentElement.textContent = `${coveragePercent}%`;
+    coverageProgressFill.style.width = `${coveragePercent}%`;
+  }
+
   caregiverHoursList.innerHTML = "";
 
   if (caregivers.length === 0) {
@@ -547,6 +609,31 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
     noOpenShiftsItem.textContent = "No available shifts.";
     availableShiftsList.append(noOpenShiftsItem);
   }
+}
+
+function startAvailableShiftsAutoScroll() {
+  clearInterval(availableShiftsScrollInterval);
+
+  if (!availableShiftsBody) {
+    return;
+  }
+
+  availableShiftsBody.scrollTop = 0;
+
+  availableShiftsScrollInterval = setInterval(function () {
+    const maxScroll =
+      availableShiftsBody.scrollHeight - availableShiftsBody.clientHeight;
+
+    if (maxScroll <= 0) {
+      return;
+    }
+
+    if (availableShiftsBody.scrollTop >= maxScroll) {
+      availableShiftsBody.scrollTop = 0;
+    } else {
+      availableShiftsBody.scrollTop += 1;
+    }
+  }, 70);
 }
 
 function renderSchedule() {
@@ -649,6 +736,23 @@ function renderSchedule() {
       ${shiftRows}
     `;
 
+    if (selectedView === "weekly") {
+      dayCard.addEventListener("click", function (event) {
+        const clickedInsideControl = event.target.closest(
+          "select, button, input, textarea",
+        );
+
+        if (clickedInsideControl) {
+          return;
+        }
+
+        weekStartDateInput.value = day.key;
+
+        saveData();
+        renderSchedule();
+      });
+    }
+
     scheduleSection.append(dayCard);
   });
 
@@ -668,6 +772,14 @@ function renderSchedule() {
   });
 
   renderCoverageSummary(scheduleDays, activeShifts);
+
+  if (openShiftsCount === 0) {
+    const noOpenShiftsItem = document.createElement("li");
+    noOpenShiftsItem.textContent = "No available shifts.";
+    availableShiftsList.append(noOpenShiftsItem);
+  }
+
+  startAvailableShiftsAutoScroll();
 }
 
 addShiftButton.addEventListener("click", function () {
