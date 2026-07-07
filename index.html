@@ -3,97 +3,109 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KindShift</title>
+    <title>Curavela</title>
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
     <header>
-      <h1>kindshift</h1>
-      <p>simple caregiving schedules for care teams</p>
+      <h1>curavela</h1>
+      <p>clearer shifts, calmer care</p>
     </header>
 
     <main>
       <section class="customize-card">
         <h2>Customize Schedule</h2>
 
-        <label for="week-start">Week starts on</label>
-        <select id="week-start">
-          <option>Monday</option>
-          <option>Tuesday</option>
-          <option>Wednesday</option>
-          <option>Thursday</option>
-          <option>Friday</option>
-          <option>Saturday</option>
-          <option>Sunday</option>
-        </select>
+        <details open>
+          <summary>Schedule Setup</summary>
 
-        <label for="schedule-view">Schedule view</label>
-        <select id="schedule-view">
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-        </select>
+          <label for="week-start">Week starts on</label>
+          <select id="week-start">
+            <option>Monday</option>
+            <option>Tuesday</option>
+            <option>Wednesday</option>
+            <option>Thursday</option>
+            <option>Friday</option>
+            <option>Saturday</option>
+            <option>Sunday</option>
+          </select>
 
-        <div id="week-picker-section">
-          <label for="week-start-date">Date in selected week</label>
-          <input id="week-start-date" type="date" />
-        </div>
+          <label for="schedule-view">Schedule view</label>
+          <select id="schedule-view">
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
 
-        <div id="month-picker-section" class="hidden">
-          <label for="month-picker">Month</label>
-          <input id="month-picker" type="month" />
-        </div>
-
-        <label for="shift-style">Shift style</label>
-        <select id="shift-style">
-          <option value="one">1 shift per day</option>
-          <option value="two">2 shifts per day</option>
-          <option value="three">3 shifts per day</option>
-          <option value="custom">custom shifts</option>
-        </select>
-
-        <div id="custom-shift-section" class="custom-shift-section hidden">
-          <label for="custom-shift-name">Custom shift name</label>
-
-          <div class="custom-shift-controls">
-            <input
-              id="custom-shift-name"
-              type="text"
-              placeholder="Example: Evening"
-            />
-            <button id="add-shift-button" type="button">Add Shift</button>
+          <div id="week-picker-section">
+            <label for="week-start-date">Date in selected week</label>
+            <input id="week-start-date" type="date" />
           </div>
 
-          <h3>Current shifts</h3>
-          <ul id="shift-list"></ul>
-        </div>
-
-        <div class="shift-times-section">
-          <h3>Shift Times</h3>
-          <p class="helper-text">
-            Change the start and end time for each shift.
-          </p>
-
-          <div id="shift-time-list"></div>
-        </div>
-
-        <div class="caregiver-section">
-          <label for="caregiver-name">Caregiver name</label>
-
-          <div class="caregiver-controls">
-            <input
-              id="caregiver-name"
-              type="text"
-              placeholder="Example: Alex"
-            />
-            <button id="add-caregiver-button" type="button">
-              Add Caregiver
-            </button>
+          <div id="month-picker-section" class="hidden">
+            <label for="month-picker">Month</label>
+            <input id="month-picker" type="month" />
           </div>
 
-          <h3>Caregivers</h3>
-          <ul id="caregiver-list"></ul>
-        </div>
+          <label for="shift-style">Shift style</label>
+          <select id="shift-style">
+            <option value="one">1 shift per day</option>
+            <option value="two">2 shifts per day</option>
+            <option value="three">3 shifts per day</option>
+            <option value="custom">custom shifts</option>
+          </select>
+        </details>
+
+        <details>
+          <summary>Shift Times</summary>
+
+          <div id="custom-shift-section" class="custom-shift-section hidden">
+            <label for="custom-shift-name">Custom shift name</label>
+
+            <div class="custom-shift-controls">
+              <input
+                id="custom-shift-name"
+                type="text"
+                placeholder="Example: Evening"
+              />
+              <button id="add-shift-button" type="button">Add Shift</button>
+            </div>
+
+            <h3>Current shifts</h3>
+            <ul id="shift-list"></ul>
+          </div>
+
+          <div class="shift-times-section">
+            <h3>Shift Times</h3>
+            <p class="helper-text">
+              Change the start and end time for each shift.
+            </p>
+
+            <div id="shift-time-list"></div>
+          </div>
+        </details>
+
+        <details>
+          <summary>Caregivers</summary>
+
+          <div class="caregiver-section">
+            <label for="caregiver-name">Caregiver name</label>
+
+            <div class="caregiver-controls">
+              <input
+                id="caregiver-name"
+                type="text"
+                placeholder="Example: Alex"
+              />
+              <button id="add-caregiver-button" type="button">
+                Add Caregiver
+              </button>
+            </div>
+
+            <h3>Caregivers</h3>
+            <ul id="caregiver-list"></ul>
+          </div>
+        </details>
       </section>
 
       <section>
@@ -127,14 +139,22 @@
             <strong id="open-shifts-count">0</strong>
           </div>
         </div>
+
+        <div class="coverage-progress-section">
+          <div class="coverage-progress-label">
+            <span>Coverage progress</span>
+            <strong id="coverage-percent">0%</strong>
+          </div>
+
+          <div class="coverage-progress-bar">
+            <div id="coverage-progress-fill"></div>
+          </div>
+        </div>
       </section>
 
       <section class="hours-card">
         <h2>Caregiver Hours</h2>
         <ul id="caregiver-hours-list"></ul>
-
-        <h3>Available Shifts</h3>
-        <ul id="available-shifts-list"></ul>
       </section>
 
       <section id="schedule"></section>
@@ -148,6 +168,17 @@
         ></textarea>
       </section>
     </main>
+
+    <aside class="available-shifts-toast">
+      <div class="available-shifts-header">
+        <span>Available shifts</span>
+        <strong id="toast-open-shifts-count">0</strong>
+      </div>
+
+      <div class="available-shifts-body">
+        <ul id="available-shifts-list"></ul>
+      </div>
+    </aside>
 
     <script src="script.js"></script>
   </body>
