@@ -26,7 +26,7 @@
           </button>
         </div>
 
-        <details>
+        <details open>
           <summary>Schedule</summary>
 
           <label for="week-start">Week starts on</label>
@@ -87,7 +87,7 @@
           <div class="shift-times-section">
             <h3>Shift Times</h3>
             <p class="helper-text">
-              Set the start and end time for each shift.
+              Set the default start and end time for each shift.
             </p>
 
             <div id="shift-time-list"></div>
@@ -217,6 +217,11 @@
               <option>PM</option>
             </select>
           </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="cancel-edit-time-button" type="button">Cancel</button>
+          <button id="save-edit-time-button" type="button">Save time</button>
         </div>
       </div>
     </div>

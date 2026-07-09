@@ -15,6 +15,7 @@ let scheduleNote = "";
 let shiftTimeOverrides = {};
 
 let activeTimeEdit = {
+  mode: "date",
   dayKey: "",
   shift: null,
 };
@@ -53,7 +54,6 @@ const scheduleNoteInput = document.querySelector("#schedule-note");
 const clearScheduleButton = document.querySelector("#clear-schedule-button");
 
 const scheduleTitle = document.querySelector("#schedule-title");
-
 const shiftTimeList = document.querySelector("#shift-time-list");
 
 const totalHoursNeededElement = document.querySelector("#total-hours-needed");
@@ -68,7 +68,6 @@ const coverageProgressFill = document.querySelector("#coverage-progress-fill");
 
 const toastOpenShiftsCount = document.querySelector("#toast-open-shifts-count");
 const availableShiftsBody = document.querySelector(".available-shifts-body");
-
 const availableShiftsToast = document.querySelector(".available-shifts-toast");
 const minimizeAvailableShiftsButton = document.querySelector(
   "#minimize-available-shifts-button",
@@ -92,34 +91,54 @@ const saveEditTimeButton = document.querySelector("#save-edit-time-button");
 
 let availableShiftsScrollInterval;
 
+function getSavedItem(newKey, oldKey) {
+  return localStorage.getItem(newKey) || localStorage.getItem(oldKey);
+}
+
 function saveData() {
-  localStorage.setItem("kindshiftCustomShifts", JSON.stringify(customShifts));
-  localStorage.setItem("kindshiftCaregivers", JSON.stringify(caregivers));
+  localStorage.setItem("curavelaCustomShifts", JSON.stringify(customShifts));
+  localStorage.setItem("curavelaCaregivers", JSON.stringify(caregivers));
   localStorage.setItem(
-    "kindshiftAssignments",
+    "curavelaAssignments",
     JSON.stringify(scheduleAssignments),
   );
-  localStorage.setItem("kindshiftScheduleNote", scheduleNote);
-  localStorage.setItem("kindshiftShiftTimes", JSON.stringify(shiftTimes));
+  localStorage.setItem("curavelaScheduleNote", scheduleNote);
+  localStorage.setItem("curavelaShiftTimes", JSON.stringify(shiftTimes));
   localStorage.setItem(
-    "kindshiftShiftTimeOverrides",
+    "curavelaShiftTimeOverrides",
     JSON.stringify(shiftTimeOverrides),
   );
 
-  localStorage.setItem("kindshiftScheduleView", scheduleViewSelect.value);
-  localStorage.setItem("kindshiftShiftStyle", shiftStyleSelect.value);
-  localStorage.setItem("kindshiftWeekStart", weekStartSelect.value);
-  localStorage.setItem("kindshiftMonth", monthPicker.value);
-  localStorage.setItem("kindshiftWeekStartDate", weekStartDateInput.value);
+  localStorage.setItem("curavelaScheduleView", scheduleViewSelect.value);
+  localStorage.setItem("curavelaShiftStyle", shiftStyleSelect.value);
+  localStorage.setItem("curavelaWeekStart", weekStartSelect.value);
+  localStorage.setItem("curavelaMonth", monthPicker.value);
+  localStorage.setItem("curavelaWeekStartDate", weekStartDateInput.value);
 }
 
 function loadData() {
-  const savedCustomShifts = localStorage.getItem("kindshiftCustomShifts");
-  const savedCaregivers = localStorage.getItem("kindshiftCaregivers");
-  const savedAssignments = localStorage.getItem("kindshiftAssignments");
-  const savedScheduleNote = localStorage.getItem("kindshiftScheduleNote");
-  const savedShiftTimes = localStorage.getItem("kindshiftShiftTimes");
-  const savedShiftTimeOverrides = localStorage.getItem(
+  const savedCustomShifts = getSavedItem(
+    "curavelaCustomShifts",
+    "kindshiftCustomShifts",
+  );
+  const savedCaregivers = getSavedItem(
+    "curavelaCaregivers",
+    "kindshiftCaregivers",
+  );
+  const savedAssignments = getSavedItem(
+    "curavelaAssignments",
+    "kindshiftAssignments",
+  );
+  const savedScheduleNote = getSavedItem(
+    "curavelaScheduleNote",
+    "kindshiftScheduleNote",
+  );
+  const savedShiftTimes = getSavedItem(
+    "curavelaShiftTimes",
+    "kindshiftShiftTimes",
+  );
+  const savedShiftTimeOverrides = getSavedItem(
+    "curavelaShiftTimeOverrides",
     "kindshiftShiftTimeOverrides",
   );
 
@@ -150,11 +169,23 @@ function loadData() {
     shiftTimeOverrides = JSON.parse(savedShiftTimeOverrides);
   }
 
-  const savedScheduleView = localStorage.getItem("kindshiftScheduleView");
-  const savedShiftStyle = localStorage.getItem("kindshiftShiftStyle");
-  const savedWeekStart = localStorage.getItem("kindshiftWeekStart");
-  const savedMonth = localStorage.getItem("kindshiftMonth");
-  const savedWeekStartDate = localStorage.getItem("kindshiftWeekStartDate");
+  const savedScheduleView = getSavedItem(
+    "curavelaScheduleView",
+    "kindshiftScheduleView",
+  );
+  const savedShiftStyle = getSavedItem(
+    "curavelaShiftStyle",
+    "kindshiftShiftStyle",
+  );
+  const savedWeekStart = getSavedItem(
+    "curavelaWeekStart",
+    "kindshiftWeekStart",
+  );
+  const savedMonth = getSavedItem("curavelaMonth", "kindshiftMonth");
+  const savedWeekStartDate = getSavedItem(
+    "curavelaWeekStartDate",
+    "kindshiftWeekStartDate",
+  );
 
   if (savedScheduleView) {
     scheduleViewSelect.value = savedScheduleView;
@@ -223,12 +254,9 @@ function getOrderedWeekDays() {
 function getDaysInSelectedWeek() {
   const selectedDate = weekStartDateInput.value || getTodayDateValue();
   const [year, month, day] = selectedDate.split("-").map(Number);
-
   const chosenDate = new Date(year, month - 1, day);
 
-  const selectedStartDay = weekStartSelect.value;
-  const selectedStartDayIndex = allWeekDays.indexOf(selectedStartDay);
-
+  const selectedStartDayIndex = allWeekDays.indexOf(weekStartSelect.value);
   const chosenDayIndex = getAppDayIndex(chosenDate);
 
   let daysToSubtract = chosenDayIndex - selectedStartDayIndex;
@@ -263,7 +291,6 @@ function getDaysInSelectedWeek() {
 function getDaysInSelectedMonth() {
   const selectedMonth = monthPicker.value || getTodayMonthValue();
   const [year, month] = selectedMonth.split("-").map(Number);
-
   const days = [];
   const lastDayOfMonth = new Date(year, month, 0).getDate();
 
@@ -361,10 +388,6 @@ function fillPrettyTimeSelects() {
   const minuteSelects = [editStartMinuteSelect, editEndMinuteSelect];
 
   hourSelects.forEach(function (select) {
-    if (!select) {
-      return;
-    }
-
     select.innerHTML = "";
 
     for (let hour = 1; hour <= 12; hour++) {
@@ -376,10 +399,6 @@ function fillPrettyTimeSelects() {
   });
 
   minuteSelects.forEach(function (select) {
-    if (!select) {
-      return;
-    }
-
     select.innerHTML = "";
 
     for (let minute = 0; minute < 60; minute++) {
@@ -467,13 +486,10 @@ function formatDateKeyForDisplay(dayKey) {
 }
 
 function editShiftTimeForDate(dayKey, shift) {
-  if (!editTimeModal) {
-    return;
-  }
-
   const shiftForDay = getShiftForDay(dayKey, shift);
 
   activeTimeEdit = {
+    mode: "date",
     dayKey: dayKey,
     shift: shift,
   };
@@ -485,18 +501,33 @@ function editShiftTimeForDate(dayKey, shift) {
 
   setPrettyStartTime(shiftForDay.start);
   setPrettyEndTime(shiftForDay.end);
+  syncAllPrettySelects();
+
+  editTimeModal.classList.remove("hidden");
+}
+
+function editDefaultShiftTime(shift) {
+  activeTimeEdit = {
+    mode: "default",
+    dayKey: "",
+    shift: shift,
+  };
+
+  editTimeTitle.textContent = `Edit default ${shift.name}`;
+  editTimeSubtitle.textContent = `This changes ${shift.name} everywhere, except dates with custom time.`;
+
+  setPrettyStartTime(shift.start);
+  setPrettyEndTime(shift.end);
+  syncAllPrettySelects();
 
   editTimeModal.classList.remove("hidden");
 }
 
 function closeEditTimeModal() {
-  if (!editTimeModal) {
-    return;
-  }
-
   editTimeModal.classList.add("hidden");
 
   activeTimeEdit = {
+    mode: "date",
     dayKey: "",
     shift: null,
   };
@@ -512,6 +543,27 @@ function saveEditedShiftTime() {
 
   if (!isValidTimeValue(newStart) || !isValidTimeValue(newEnd)) {
     alert("Please choose a valid start and end time.");
+    return;
+  }
+
+  if (activeTimeEdit.mode === "default") {
+    const shiftName = activeTimeEdit.shift.name;
+
+    if (!shiftTimes[shiftName]) {
+      shiftTimes[shiftName] = {
+        start: newStart,
+        end: newEnd,
+      };
+    }
+
+    shiftTimes[shiftName].start = newStart;
+    shiftTimes[shiftName].end = newEnd;
+
+    saveData();
+    closeEditTimeModal();
+    renderShiftTimeList();
+    renderSchedule();
+
     return;
   }
 
@@ -686,49 +738,48 @@ function renderShiftTimeList() {
 
   activeShifts.forEach(function (shift) {
     const shiftTimeRow = document.createElement("div");
-    shiftTimeRow.classList.add("shift-time-row");
+    shiftTimeRow.classList.add("clean-shift-time-row");
+
+    const shiftHours = getShiftHours(shift);
 
     shiftTimeRow.innerHTML = `
-      <strong>${shift.name}</strong>
+      <div>
+        <strong>${shift.name}</strong>
+        <span class="clean-shift-time-text">
+          ${formatTime(shift.start)} - ${formatTime(shift.end)}
+          · ${formatHours(shiftHours)}
+        </span>
+      </div>
 
-      <input
-        class="shift-start-time"
-        type="time"
-        value="${shift.start}"
+      <button
+        class="edit-default-time-button"
+        type="button"
         data-shift="${shift.name}"
-        data-time-type="start"
-      />
-
-      <input
-        class="shift-end-time"
-        type="time"
-        value="${shift.end}"
-        data-shift="${shift.name}"
-        data-time-type="end"
-      />
+      >
+        Edit default
+      </button>
     `;
 
     shiftTimeList.append(shiftTimeRow);
   });
 
-  const timeInputs = document.querySelectorAll(".shift-time-row input");
+  const editDefaultTimeButtons = document.querySelectorAll(
+    ".edit-default-time-button",
+  );
 
-  timeInputs.forEach(function (input) {
-    input.addEventListener("change", function () {
-      const shiftName = input.dataset.shift;
-      const timeType = input.dataset.timeType;
+  editDefaultTimeButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      const shiftName = button.dataset.shift;
 
-      if (!shiftTimes[shiftName]) {
-        shiftTimes[shiftName] = {
-          start: "09:00",
-          end: "17:00",
-        };
+      const shift = activeShifts.find(function (activeShift) {
+        return activeShift.name === shiftName;
+      });
+
+      if (!shift) {
+        return;
       }
 
-      shiftTimes[shiftName][timeType] = input.value;
-
-      saveData();
-      renderSchedule();
+      editDefaultShiftTime(shift);
     });
   });
 }
@@ -1035,7 +1086,7 @@ function renderWeeklySchedule(scheduleDays, activeShifts, selectedView) {
 
     dayCard.addEventListener("click", function (event) {
       const clickedInsideControl = event.target.closest(
-        "select, button, input, textarea",
+        "select, button, input, textarea, .pretty-select",
       );
 
       if (clickedInsideControl) {
@@ -1173,6 +1224,7 @@ function attachAssignmentListeners(scheduleDays, activeShifts) {
 
       saveData();
       renderCoverageSummary(scheduleDays, activeShifts);
+      syncAllPrettySelects();
     });
   });
 }
@@ -1213,6 +1265,131 @@ function attachShiftTimeButtonListeners() {
   });
 }
 
+function closeAllPrettySelects() {
+  document
+    .querySelectorAll(".pretty-select.is-open")
+    .forEach(function (wrapper) {
+      wrapper.classList.remove("is-open");
+    });
+}
+
+function syncPrettySelectButton(select) {
+  const wrapper = select.nextElementSibling;
+
+  if (!wrapper || !wrapper.classList.contains("pretty-select")) {
+    return;
+  }
+
+  const label = wrapper.querySelector(".pretty-select-label");
+  const selectedOption = select.options[select.selectedIndex];
+
+  if (label && selectedOption) {
+    label.textContent = selectedOption.textContent;
+  }
+
+  wrapper.querySelectorAll(".pretty-select-option").forEach(function (button) {
+    button.classList.toggle(
+      "is-selected",
+      button.dataset.value === select.value,
+    );
+  });
+}
+
+function rebuildPrettySelectOptions(select) {
+  const wrapper = select.nextElementSibling;
+
+  if (!wrapper || !wrapper.classList.contains("pretty-select")) {
+    return;
+  }
+
+  const menu = wrapper.querySelector(".pretty-select-menu");
+  menu.innerHTML = "";
+
+  Array.from(select.options).forEach(function (option) {
+    const optionButton = document.createElement("button");
+    optionButton.type = "button";
+    optionButton.classList.add("pretty-select-option");
+    optionButton.dataset.value = option.value;
+    optionButton.textContent = option.textContent;
+
+    if (option.value === select.value) {
+      optionButton.classList.add("is-selected");
+    }
+
+    optionButton.addEventListener("click", function (event) {
+      event.stopPropagation();
+
+      select.value = option.value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+
+      closeAllPrettySelects();
+      syncPrettySelectButton(select);
+    });
+
+    menu.append(optionButton);
+  });
+}
+
+function enhanceSelect(select) {
+  if (select.dataset.prettySelect === "true") {
+    rebuildPrettySelectOptions(select);
+    syncPrettySelectButton(select);
+    return;
+  }
+
+  select.dataset.prettySelect = "true";
+  select.classList.add("native-hidden-select");
+
+  const wrapper = document.createElement("div");
+  wrapper.classList.add("pretty-select");
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.classList.add("pretty-select-button");
+  button.innerHTML = `
+    <span class="pretty-select-label"></span>
+    <span class="pretty-select-arrow">⌄</span>
+  `;
+
+  const menu = document.createElement("div");
+  menu.classList.add("pretty-select-menu");
+
+  wrapper.append(button);
+  wrapper.append(menu);
+  select.after(wrapper);
+
+  button.addEventListener("click", function (event) {
+    event.stopPropagation();
+
+    const isOpen = wrapper.classList.contains("is-open");
+
+    closeAllPrettySelects();
+
+    if (!isOpen) {
+      wrapper.classList.add("is-open");
+    }
+  });
+
+  select.addEventListener("change", function () {
+    syncPrettySelectButton(select);
+  });
+
+  rebuildPrettySelectOptions(select);
+  syncPrettySelectButton(select);
+}
+
+function enhanceAllSelects() {
+  document.querySelectorAll("select").forEach(function (select) {
+    enhanceSelect(select);
+  });
+}
+
+function syncAllPrettySelects() {
+  document.querySelectorAll("select").forEach(function (select) {
+    syncPrettySelectButton(select);
+  });
+}
+
 function renderSchedule() {
   scheduleSection.innerHTML = "";
 
@@ -1222,9 +1399,7 @@ function renderSchedule() {
   let scheduleDays = [];
 
   if (selectedView === "monthly") {
-    if (scheduleTitle) {
-      scheduleTitle.textContent = "Monthly Schedule";
-    }
+    scheduleTitle.textContent = "Monthly Schedule";
 
     scheduleDays = getDaysInSelectedMonth();
 
@@ -1241,9 +1416,7 @@ function renderSchedule() {
 
     renderMonthlySchedule(scheduleDays, activeShifts);
   } else {
-    if (scheduleTitle) {
-      scheduleTitle.textContent = "Weekly Schedule";
-    }
+    scheduleTitle.textContent = "Weekly Schedule";
 
     scheduleDays = getDaysInSelectedWeek();
 
@@ -1258,6 +1431,7 @@ function renderSchedule() {
   attachAssignmentListeners(scheduleDays, activeShifts);
   attachShiftTimeButtonListeners();
   renderCoverageSummary(scheduleDays, activeShifts);
+  enhanceAllSelects();
 }
 
 function addCaregiver() {
@@ -1374,49 +1548,49 @@ clearScheduleButton.addEventListener("click", function () {
   }
 });
 
-if (minimizeAvailableShiftsButton) {
-  minimizeAvailableShiftsButton.addEventListener("click", function () {
-    const isCurrentlyMinimized =
-      availableShiftsToast.classList.contains("is-minimized");
+minimizeAvailableShiftsButton.addEventListener("click", function () {
+  const isCurrentlyMinimized =
+    availableShiftsToast.classList.contains("is-minimized");
 
-    localStorage.setItem(
-      "kindshiftAvailableShiftsMinimized",
-      String(!isCurrentlyMinimized),
-    );
+  localStorage.setItem(
+    "kindshiftAvailableShiftsMinimized",
+    String(!isCurrentlyMinimized),
+  );
 
-    updateAvailableShiftsMinimizedState();
-  });
-}
+  updateAvailableShiftsMinimizedState();
+});
 
-if (closeEditTimeButton) {
-  closeEditTimeButton.addEventListener("click", function () {
+closeEditTimeButton.addEventListener("click", function () {
+  closeEditTimeModal();
+});
+
+cancelEditTimeButton.addEventListener("click", function () {
+  closeEditTimeModal();
+});
+
+saveEditTimeButton.addEventListener("click", function () {
+  saveEditedShiftTime();
+});
+
+editTimeModal.addEventListener("click", function (event) {
+  if (event.target === editTimeModal) {
     closeEditTimeModal();
-  });
-}
+  }
+});
 
-if (cancelEditTimeButton) {
-  cancelEditTimeButton.addEventListener("click", function () {
-    closeEditTimeModal();
-  });
-}
-
-if (saveEditTimeButton) {
-  saveEditTimeButton.addEventListener("click", function () {
-    saveEditedShiftTime();
-  });
-}
-
-if (editTimeModal) {
-  editTimeModal.addEventListener("click", function (event) {
-    if (event.target === editTimeModal) {
-      closeEditTimeModal();
-    }
-  });
-}
+document.addEventListener("click", function (event) {
+  if (!event.target.closest(".pretty-select")) {
+    closeAllPrettySelects();
+  }
+});
 
 document.addEventListener("keydown", function (event) {
-  if (editTimeModal && event.key === "Escape") {
-    closeEditTimeModal();
+  if (event.key === "Escape") {
+    closeAllPrettySelects();
+
+    if (!editTimeModal.classList.contains("hidden")) {
+      closeEditTimeModal();
+    }
   }
 });
 
@@ -1440,3 +1614,4 @@ renderShiftList();
 renderCaregiverList();
 renderShiftTimeList();
 renderSchedule();
+enhanceAllSelects();
