@@ -1086,6 +1086,90 @@ button:hover {
   }
 }
 
+.pretty-week-picker {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.pretty-week-picker button {
+  min-height: 50px;
+  border-radius: 18px;
+}
+
+#selected-week-display-button {
+  justify-content: center;
+  color: var(--blue);
+  background: rgba(143, 216, 255, 0.12);
+  border-color: rgba(143, 216, 255, 0.28);
+}
+
+#selected-week-display {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#today-week-button {
+  color: var(--green);
+  background: rgba(184, 255, 213, 0.12);
+  border-color: rgba(184, 255, 213, 0.28);
+}
+
+@media (max-width: 650px) {
+  .pretty-week-picker {
+    grid-template-columns: 48px 1fr 48px;
+  }
+
+  #today-week-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+.pretty-month-picker {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.pretty-month-picker button {
+  min-height: 50px;
+  border-radius: 18px;
+}
+
+#selected-month-display-button {
+  justify-content: center;
+  color: var(--blue);
+  background: rgba(143, 216, 255, 0.12);
+  border-color: rgba(143, 216, 255, 0.28);
+}
+
+#selected-month-display {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#current-month-button {
+  color: var(--green);
+  background: rgba(184, 255, 213, 0.12);
+  border-color: rgba(184, 255, 213, 0.28);
+}
+
+@media (max-width: 650px) {
+  .pretty-month-picker {
+    grid-template-columns: 48px 1fr 48px;
+  }
+
+  #current-month-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
 /* Print layout: clean PDF / paper schedule */
 @media print {
   @page {

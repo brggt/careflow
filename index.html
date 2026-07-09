@@ -88,8 +88,23 @@
           </div>
 
           <div id="month-picker-section" class="hidden">
-            <label for="month-picker">Month</label>
-            <input id="month-picker" type="month" />
+            <label>Month</label>
+
+            <div class="pretty-month-picker">
+              <button id="previous-month-button" type="button">←</button>
+
+              <button id="selected-month-display-button" type="button">
+                <span id="selected-month-display">Selected month</span>
+              </button>
+
+              <button id="next-month-button" type="button">→</button>
+
+              <button id="current-month-button" type="button">
+                This Month
+              </button>
+            </div>
+
+            <input id="month-picker" class="hidden" type="month" />
           </div>
         </details>
 

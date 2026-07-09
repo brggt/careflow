@@ -51,6 +51,11 @@ const monthPickerSection = document.querySelector("#month-picker-section");
 const weekStartDateInput = document.querySelector("#week-start-date");
 const weekPickerSection = document.querySelector("#week-picker-section");
 
+const previousWeekButton = document.querySelector("#previous-week-button");
+const nextWeekButton = document.querySelector("#next-week-button");
+const todayWeekButton = document.querySelector("#today-week-button");
+const selectedWeekDisplay = document.querySelector("#selected-week-display");
+
 const scheduleNoteInput = document.querySelector("#schedule-note");
 const clearScheduleButton = document.querySelector("#clear-schedule-button");
 
@@ -65,6 +70,11 @@ const pasteWeekButton = document.querySelector("#paste-week-button");
 
 const scheduleTitle = document.querySelector("#schedule-title");
 const shiftTimeList = document.querySelector("#shift-time-list");
+
+const previousMonthButton = document.querySelector("#previous-month-button");
+const nextMonthButton = document.querySelector("#next-month-button");
+const currentMonthButton = document.querySelector("#current-month-button");
+const selectedMonthDisplay = document.querySelector("#selected-month-display");
 
 const totalHoursNeededElement = document.querySelector("#total-hours-needed");
 const totalHoursCoveredElement = document.querySelector("#total-hours-covered");
@@ -308,6 +318,32 @@ function importCuravelaData(file) {
   reader.readAsText(file);
 }
 
+function changeSelectedWeekByDays(dayAmount) {
+  const currentValue = weekStartDateInput.value || getTodayDateValue();
+  const [year, month, day] = currentValue.split("-").map(Number);
+  const currentDate = new Date(year, month - 1, day);
+
+  currentDate.setDate(currentDate.getDate() + dayAmount);
+
+  weekStartDateInput.value = getDateKey(currentDate);
+
+  saveData();
+  updateWeekDisplay();
+  renderSchedule();
+}
+
+function updateWeekDisplay() {
+  if (!selectedWeekDisplay) {
+    return;
+  }
+
+  const days = getDaysInSelectedWeek();
+  const firstDay = days[0].label;
+  const lastDay = days[days.length - 1].label;
+
+  selectedWeekDisplay.textContent = `${firstDay} - ${lastDay}`;
+}
+
 function getTodayDateValue() {
   const today = new Date();
   const year = today.getFullYear();
@@ -323,6 +359,40 @@ function getTodayMonthValue() {
   const month = String(today.getMonth() + 1).padStart(2, "0");
 
   return `${year}-${month}`;
+}
+
+function updateMonthDisplay() {
+  if (!selectedMonthDisplay) {
+    return;
+  }
+
+  const selectedMonth = monthPicker.value || getTodayMonthValue();
+  const [year, month] = selectedMonth.split("-").map(Number);
+
+  selectedMonthDisplay.textContent = new Date(
+    year,
+    month - 1,
+  ).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function changeSelectedMonthByMonths(monthAmount) {
+  const currentValue = monthPicker.value || getTodayMonthValue();
+  const [year, month] = currentValue.split("-").map(Number);
+  const currentDate = new Date(year, month - 1, 1);
+
+  currentDate.setMonth(currentDate.getMonth() + monthAmount);
+
+  const newYear = currentDate.getFullYear();
+  const newMonth = String(currentDate.getMonth() + 1).padStart(2, "0");
+
+  monthPicker.value = `${newYear}-${newMonth}`;
+
+  saveData();
+  updateMonthDisplay();
+  renderSchedule();
 }
 
 function getDateKey(date) {
@@ -1646,6 +1716,28 @@ addShiftButton.addEventListener("click", function () {
   renderSchedule();
 });
 
+if (previousWeekButton) {
+  previousWeekButton.addEventListener("click", function () {
+    changeSelectedWeekByDays(-7);
+  });
+}
+
+if (nextWeekButton) {
+  nextWeekButton.addEventListener("click", function () {
+    changeSelectedWeekByDays(7);
+  });
+}
+
+if (todayWeekButton) {
+  todayWeekButton.addEventListener("click", function () {
+    weekStartDateInput.value = getTodayDateValue();
+
+    saveData();
+    updateWeekDisplay();
+    renderSchedule();
+  });
+}
+
 customShiftInput.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
     event.preventDefault();
@@ -1748,6 +1840,28 @@ if (pasteWeekButton) {
   });
 }
 
+if (previousMonthButton) {
+  previousMonthButton.addEventListener("click", function () {
+    changeSelectedMonthByMonths(-1);
+  });
+}
+
+if (nextMonthButton) {
+  nextMonthButton.addEventListener("click", function () {
+    changeSelectedMonthByMonths(1);
+  });
+}
+
+if (currentMonthButton) {
+  currentMonthButton.addEventListener("click", function () {
+    monthPicker.value = getTodayMonthValue();
+
+    saveData();
+    updateMonthDisplay();
+    renderSchedule();
+  });
+}
+
 if (minimizeAvailableShiftsButton && availableShiftsToast) {
   minimizeAvailableShiftsButton.addEventListener("click", function () {
     const isCurrentlyMinimized =
@@ -1816,4 +1930,6 @@ renderShiftList();
 renderCaregiverList();
 renderShiftTimeList();
 renderSchedule();
+updateWeekDisplay();
+updateMonthDisplay();
 enhanceAllSelects();
