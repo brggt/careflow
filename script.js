@@ -68,6 +68,9 @@ const printScheduleButton = document.querySelector("#print-schedule-button");
 const copyWeekButton = document.querySelector("#copy-week-button");
 const pasteWeekButton = document.querySelector("#paste-week-button");
 
+const clearWeekButton = document.querySelector("#clear-week-button");
+const clearMonthButton = document.querySelector("#clear-month-button");
+
 const scheduleTitle = document.querySelector("#schedule-title");
 const shiftTimeList = document.querySelector("#shift-time-list");
 
@@ -536,6 +539,88 @@ function pasteCopiedWeek() {
   renderSchedule();
 
   alert("Copied week pasted to the selected week.");
+}
+
+function pasteCopiedWeek() {
+  if (scheduleViewSelect.value !== "weekly") {
+    alert("Switch to Weekly view before pasting a week.");
+    return;
+  }
+
+  if (!copiedWeekAssignments) {
+    alert("Copy a week first.");
+    return;
+  }
+
+  const weekDays = getDaysInSelectedWeek();
+
+  copiedWeekAssignments.forEach(function (copiedShift) {
+    const targetDay = weekDays[copiedShift.dayIndex];
+
+    if (!targetDay) {
+      return;
+    }
+
+    const assignmentKey = `${targetDay.key}-${copiedShift.shiftName}`;
+    scheduleAssignments[assignmentKey] = copiedShift.caregiver;
+  });
+
+  saveData();
+  renderSchedule();
+
+  alert("Copied week pasted to the selected week.");
+}
+
+function clearSelectedWeek() {
+  if (scheduleViewSelect.value !== "weekly") {
+    alert("Switch to Weekly view before clearing a week.");
+    return;
+  }
+
+  if (!confirm("Clear only this selected week?")) {
+    return;
+  }
+
+  const weekDays = getDaysInSelectedWeek();
+  const activeShifts = getActiveShifts();
+
+  weekDays.forEach(function (day) {
+    activeShifts.forEach(function (shift) {
+      const assignmentKey = `${day.key}-${shift.name}`;
+      delete scheduleAssignments[assignmentKey];
+    });
+  });
+
+  saveData();
+  renderSchedule();
+
+  alert("This week has been cleared.");
+}
+
+function clearSelectedMonth() {
+  if (scheduleViewSelect.value !== "monthly") {
+    alert("Switch to Monthly view before clearing a month.");
+    return;
+  }
+
+  if (!confirm("Clear only this selected month?")) {
+    return;
+  }
+
+  const monthDays = getDaysInSelectedMonth();
+  const activeShifts = getActiveShifts();
+
+  monthDays.forEach(function (day) {
+    activeShifts.forEach(function (shift) {
+      const assignmentKey = `${day.key}-${shift.name}`;
+      delete scheduleAssignments[assignmentKey];
+    });
+  });
+
+  saveData();
+  renderSchedule();
+
+  alert("This month has been cleared.");
 }
 
 function updatePickerVisibility() {
@@ -1837,6 +1922,18 @@ if (copyWeekButton) {
 if (pasteWeekButton) {
   pasteWeekButton.addEventListener("click", function () {
     pasteCopiedWeek();
+  });
+}
+
+if (clearWeekButton) {
+  clearWeekButton.addEventListener("click", function () {
+    clearSelectedWeek();
+  });
+}
+
+if (clearMonthButton) {
+  clearMonthButton.addEventListener("click", function () {
+    clearSelectedMonth();
   });
 }
 
