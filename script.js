@@ -30,6 +30,8 @@ let shiftTimes = {
 
 const scheduleSection = document.querySelector("#schedule");
 
+const printScheduleButton = document.querySelector("#print-schedule-button");
+
 const customShiftInput = document.querySelector("#custom-shift-name");
 const addShiftButton = document.querySelector("#add-shift-button");
 const shiftList = document.querySelector("#shift-list");
@@ -88,6 +90,10 @@ const editEndPeriodSelect = document.querySelector("#edit-end-period");
 const closeEditTimeButton = document.querySelector("#close-edit-time-button");
 const cancelEditTimeButton = document.querySelector("#cancel-edit-time-button");
 const saveEditTimeButton = document.querySelector("#save-edit-time-button");
+
+const exportDataButton = document.querySelector("#export-data-button");
+const importDataButton = document.querySelector("#import-data-button");
+const importDataInput = document.querySelector("#import-data-input");
 
 let availableShiftsScrollInterval;
 
@@ -206,6 +212,96 @@ function loadData() {
   if (savedWeekStartDate) {
     weekStartDateInput.value = savedWeekStartDate;
   }
+}
+
+function exportCuravelaData() {
+  const backupData = {
+    app: "Curavela",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    customShifts: customShifts,
+    caregivers: caregivers,
+    scheduleAssignments: scheduleAssignments,
+    scheduleNote: scheduleNote,
+    shiftTimes: shiftTimes,
+    shiftTimeOverrides: shiftTimeOverrides,
+    scheduleView: scheduleViewSelect.value,
+    shiftStyle: shiftStyleSelect.value,
+    weekStart: weekStartSelect.value,
+    month: monthPicker.value,
+    weekStartDate: weekStartDateInput.value,
+  };
+
+  const backupText = JSON.stringify(backupData, null, 2);
+  const backupBlob = new Blob([backupText], {
+    type: "application/json",
+  });
+
+  const backupUrl = URL.createObjectURL(backupBlob);
+  const downloadLink = document.createElement("a");
+
+  downloadLink.href = backupUrl;
+  downloadLink.download = "curavela-backup.json";
+  downloadLink.click();
+
+  URL.revokeObjectURL(backupUrl);
+}
+
+function importCuravelaData(file) {
+  const reader = new FileReader();
+
+  reader.addEventListener("load", function () {
+    try {
+      const backupData = JSON.parse(reader.result);
+
+      customShifts = backupData.customShifts || customShifts;
+      caregivers = backupData.caregivers || caregivers;
+      scheduleAssignments = backupData.scheduleAssignments || {};
+      scheduleNote = backupData.scheduleNote || "";
+      shiftTimes = {
+        ...shiftTimes,
+        ...(backupData.shiftTimes || {}),
+      };
+      shiftTimeOverrides = backupData.shiftTimeOverrides || {};
+
+      if (backupData.scheduleView) {
+        scheduleViewSelect.value = backupData.scheduleView;
+      }
+
+      if (backupData.shiftStyle) {
+        shiftStyleSelect.value = backupData.shiftStyle;
+      }
+
+      if (backupData.weekStart) {
+        weekStartSelect.value = backupData.weekStart;
+      }
+
+      if (backupData.month) {
+        monthPicker.value = backupData.month;
+      }
+
+      if (backupData.weekStartDate) {
+        weekStartDateInput.value = backupData.weekStartDate;
+      }
+
+      scheduleNoteInput.value = scheduleNote;
+
+      saveData();
+      updateCustomShiftVisibility();
+      updatePickerVisibility();
+      renderShiftList();
+      renderCaregiverList();
+      renderShiftTimeList();
+      renderSchedule();
+      enhanceAllSelects();
+
+      alert("Backup imported successfully.");
+    } catch (error) {
+      alert("That backup file could not be imported.");
+    }
+  });
+
+  reader.readAsText(file);
 }
 
 function getTodayDateValue() {
@@ -862,6 +958,10 @@ function renderCaregiverList() {
     caregiverList.append(caregiverItem);
   });
 }
+
+printScheduleButton.addEventListener("click", function () {
+  window.print();
+});
 
 function startAvailableShiftsAutoScroll() {
   clearInterval(availableShiftsScrollInterval);
@@ -1546,6 +1646,33 @@ clearScheduleButton.addEventListener("click", function () {
     saveData();
     renderSchedule();
   }
+});
+
+clearScheduleButton.addEventListener("click", function () {
+  if (confirm("Are you sure you want to clear the schedule?")) {
+    scheduleAssignments = {};
+    saveData();
+    renderSchedule();
+  }
+});
+
+exportDataButton.addEventListener("click", function () {
+  exportCuravelaData();
+});
+
+importDataButton.addEventListener("click", function () {
+  importDataInput.click();
+});
+
+importDataInput.addEventListener("change", function () {
+  const file = importDataInput.files[0];
+
+  if (!file) {
+    return;
+  }
+
+  importCuravelaData(file);
+  importDataInput.value = "";
 });
 
 minimizeAvailableShiftsButton.addEventListener("click", function () {

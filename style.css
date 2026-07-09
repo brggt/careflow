@@ -965,3 +965,290 @@ button:hover {
     width: calc(100vw - 20px);
   }
 }
+
+/* Print layout: clean PDF / paper schedule */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.35in;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    overflow: visible !important;
+  }
+
+  body {
+    min-height: auto !important;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  header {
+    padding: 0 0 10px !important;
+    text-align: left;
+    border-bottom: 2px solid #111827;
+    margin-bottom: 10px !important;
+  }
+
+  header h1 {
+    color: #111827 !important;
+    font-size: 34px;
+    letter-spacing: -0.05em;
+  }
+
+  header p {
+    color: #4b5563 !important;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .customize-card,
+  .notes-card,
+  .available-shifts-toast,
+  .modal-overlay,
+  button,
+  input,
+  textarea,
+  .pretty-select-menu {
+    display: none !important;
+  }
+
+  .hours-card,
+  .summary-card,
+  #schedule.weekly-schedule-list,
+  #schedule.monthly-schedule-grid {
+    display: block !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+    margin-bottom: 8px !important;
+    padding: 14px !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+    border: 1.5px solid #111827 !important;
+  }
+
+  .hours-card h2,
+  .summary-card h2 {
+    color: #111827 !important;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  #caregiver-hours-list,
+  .summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  #caregiver-hours-list li,
+  .summary-grid div {
+    min-height: auto !important;
+    padding: 9px !important;
+    border-radius: 10px !important;
+    background: #f9fafb !important;
+    border: 1px solid #9ca3af !important;
+    color: #111827 !important;
+  }
+
+  .summary-grid p {
+    color: #4b5563 !important;
+    font-size: 9px;
+    margin-bottom: 5px;
+  }
+
+  .summary-grid strong {
+    color: #111827 !important;
+    font-size: 17px;
+  }
+
+  .coverage-progress-section {
+    display: none !important;
+  }
+
+  #schedule.weekly-schedule-list {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  .day-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding: 11px !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    border: 1.25px solid #374151 !important;
+  }
+
+  .selected-date-card {
+    border: 2px solid #111827 !important;
+  }
+
+  .day-card-header {
+    border-bottom: 1px solid #d1d5db;
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+  }
+
+  .day-card-header h3 {
+    color: #111827 !important;
+    font-size: 14px;
+  }
+
+  .selected-badge,
+  .time-override-badge {
+    color: #111827 !important;
+    background: #f3f4f6 !important;
+    border: 1px solid #9ca3af !important;
+    font-size: 8px;
+  }
+
+  .shift-row {
+    grid-template-columns: 1fr 180px !important;
+    gap: 8px !important;
+    padding: 7px 0 !important;
+    border-top: 1px solid #e5e7eb !important;
+  }
+
+  .shift-name {
+    color: #111827 !important;
+    font-size: 11px;
+  }
+
+  .shift-time {
+    color: #4b5563 !important;
+    font-size: 9px;
+  }
+
+  .shift-actions {
+    display: block !important;
+  }
+
+  .native-hidden-select {
+    display: none !important;
+  }
+
+  .pretty-select {
+    display: block !important;
+  }
+
+  .pretty-select-button {
+    min-height: auto !important;
+    padding: 7px 9px !important;
+    border-radius: 9px !important;
+    background: #f9fafb !important;
+    border: 1px solid #9ca3af !important;
+    color: #111827 !important;
+    font-size: 10px;
+  }
+
+  .pretty-select-arrow {
+    display: none !important;
+  }
+
+  .edit-time-button,
+  .reset-time-button {
+    display: none !important;
+  }
+
+  #schedule.monthly-schedule-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    border: 1.5px solid #111827 !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+  }
+
+  .month-weekday-header,
+  .month-empty-day {
+    display: none !important;
+  }
+
+  .month-day-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    min-height: auto !important;
+    padding: 8px !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    border: 1px solid #9ca3af !important;
+  }
+
+  .month-day-header {
+    margin-bottom: 6px !important;
+    padding-bottom: 4px !important;
+    border-bottom: 1px solid #d1d5db !important;
+  }
+
+  .month-date-number {
+    color: #111827 !important;
+    font-size: 13px !important;
+  }
+
+  .month-weekday {
+    color: #4b5563 !important;
+    font-size: 10px !important;
+  }
+
+  .month-shifts {
+    gap: 5px !important;
+  }
+
+  .month-shift-row {
+    display: grid !important;
+    grid-template-columns: 1fr 90px !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 5px 6px !important;
+    border-radius: 7px !important;
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  .month-shift-info {
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+  }
+
+  .month-shift-name {
+    color: #111827 !important;
+    font-size: 8px !important;
+  }
+
+  .month-shift-time {
+    color: #4b5563 !important;
+    font-size: 8px !important;
+  }
+
+  .month-time-button,
+  .month-reset-button {
+    display: none !important;
+  }
+
+  .month-assignment-select + .pretty-select .pretty-select-button {
+    min-height: auto !important;
+    padding: 4px 6px !important;
+    font-size: 8px !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    border: 1px solid #9ca3af !important;
+    color: #111827 !important;
+  }
+}
