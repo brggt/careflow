@@ -335,7 +335,7 @@ function updateAvailableShiftsMinimizedState() {
   }
 
   const isMinimized =
-    localStorage.getItem("kindshiftAvailableShiftsMinimized") === "true";
+    localStorage.getItem("curavelaAvailableShiftsMinimized") === "true";
 
   availableShiftsToast.classList.toggle("is-minimized", isMinimized);
   minimizeAvailableShiftsButton.textContent = isMinimized ? "+" : "−";
@@ -1553,7 +1553,7 @@ minimizeAvailableShiftsButton.addEventListener("click", function () {
     availableShiftsToast.classList.contains("is-minimized");
 
   localStorage.setItem(
-    "kindshiftAvailableShiftsMinimized",
+    "curavelaAvailableShiftsMinimized",
     String(!isCurrentlyMinimized),
   );
 
