@@ -14,6 +14,11 @@ let scheduleAssignments = {};
 let scheduleNote = "";
 let shiftTimeOverrides = {};
 
+let activeTimeEdit = {
+  dayKey: "",
+  shift: null,
+};
+
 let shiftTimes = {
   "Full Day": { start: "00:00", end: "00:00" },
   Day: { start: "07:00", end: "19:00" },
@@ -63,6 +68,27 @@ const coverageProgressFill = document.querySelector("#coverage-progress-fill");
 
 const toastOpenShiftsCount = document.querySelector("#toast-open-shifts-count");
 const availableShiftsBody = document.querySelector(".available-shifts-body");
+
+const availableShiftsToast = document.querySelector(".available-shifts-toast");
+const minimizeAvailableShiftsButton = document.querySelector(
+  "#minimize-available-shifts-button",
+);
+
+const editTimeModal = document.querySelector("#edit-time-modal");
+const editTimeTitle = document.querySelector("#edit-time-title");
+const editTimeSubtitle = document.querySelector("#edit-time-subtitle");
+
+const editStartHourSelect = document.querySelector("#edit-start-hour");
+const editStartMinuteSelect = document.querySelector("#edit-start-minute");
+const editStartPeriodSelect = document.querySelector("#edit-start-period");
+
+const editEndHourSelect = document.querySelector("#edit-end-hour");
+const editEndMinuteSelect = document.querySelector("#edit-end-minute");
+const editEndPeriodSelect = document.querySelector("#edit-end-period");
+
+const closeEditTimeButton = document.querySelector("#close-edit-time-button");
+const cancelEditTimeButton = document.querySelector("#cancel-edit-time-button");
+const saveEditTimeButton = document.querySelector("#save-edit-time-button");
 
 let availableShiftsScrollInterval;
 
@@ -276,6 +302,18 @@ function updateCustomShiftVisibility() {
   }
 }
 
+function updateAvailableShiftsMinimizedState() {
+  if (!availableShiftsToast || !minimizeAvailableShiftsButton) {
+    return;
+  }
+
+  const isMinimized =
+    localStorage.getItem("kindshiftAvailableShiftsMinimized") === "true";
+
+  availableShiftsToast.classList.toggle("is-minimized", isMinimized);
+  minimizeAvailableShiftsButton.textContent = isMinimized ? "+" : "−";
+}
+
 function getShiftConfig(shiftName, defaultStart, defaultEnd) {
   if (!shiftTimes[shiftName]) {
     shiftTimes[shiftName] = {
@@ -318,38 +356,169 @@ function isValidTimeValue(timeValue) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(timeValue);
 }
 
+function fillPrettyTimeSelects() {
+  const hourSelects = [editStartHourSelect, editEndHourSelect];
+  const minuteSelects = [editStartMinuteSelect, editEndMinuteSelect];
+
+  hourSelects.forEach(function (select) {
+    if (!select) {
+      return;
+    }
+
+    select.innerHTML = "";
+
+    for (let hour = 1; hour <= 12; hour++) {
+      const option = document.createElement("option");
+      option.value = String(hour).padStart(2, "0");
+      option.textContent = String(hour).padStart(2, "0");
+      select.append(option);
+    }
+  });
+
+  minuteSelects.forEach(function (select) {
+    if (!select) {
+      return;
+    }
+
+    select.innerHTML = "";
+
+    for (let minute = 0; minute < 60; minute++) {
+      const option = document.createElement("option");
+      option.value = String(minute).padStart(2, "0");
+      option.textContent = String(minute).padStart(2, "0");
+      select.append(option);
+    }
+  });
+}
+
+function convert24HourToPrettyTime(timeValue) {
+  const [hourText, minute] = timeValue.split(":");
+  let hour = Number(hourText);
+  const period = hour >= 12 ? "PM" : "AM";
+
+  hour = hour % 12;
+
+  if (hour === 0) {
+    hour = 12;
+  }
+
+  return {
+    hour: String(hour).padStart(2, "0"),
+    minute: minute,
+    period: period,
+  };
+}
+
+function convertPrettyTimeTo24Hour(hourValue, minuteValue, periodValue) {
+  let hour = Number(hourValue);
+
+  if (periodValue === "AM" && hour === 12) {
+    hour = 0;
+  }
+
+  if (periodValue === "PM" && hour !== 12) {
+    hour += 12;
+  }
+
+  return `${String(hour).padStart(2, "0")}:${minuteValue}`;
+}
+
+function setPrettyStartTime(timeValue) {
+  const prettyTime = convert24HourToPrettyTime(timeValue);
+
+  editStartHourSelect.value = prettyTime.hour;
+  editStartMinuteSelect.value = prettyTime.minute;
+  editStartPeriodSelect.value = prettyTime.period;
+}
+
+function setPrettyEndTime(timeValue) {
+  const prettyTime = convert24HourToPrettyTime(timeValue);
+
+  editEndHourSelect.value = prettyTime.hour;
+  editEndMinuteSelect.value = prettyTime.minute;
+  editEndPeriodSelect.value = prettyTime.period;
+}
+
+function getPrettyStartTime() {
+  return convertPrettyTimeTo24Hour(
+    editStartHourSelect.value,
+    editStartMinuteSelect.value,
+    editStartPeriodSelect.value,
+  );
+}
+
+function getPrettyEndTime() {
+  return convertPrettyTimeTo24Hour(
+    editEndHourSelect.value,
+    editEndMinuteSelect.value,
+    editEndPeriodSelect.value,
+  );
+}
+
+function formatDateKeyForDisplay(dayKey) {
+  const [year, month, day] = dayKey.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 function editShiftTimeForDate(dayKey, shift) {
+  if (!editTimeModal) {
+    return;
+  }
+
   const shiftForDay = getShiftForDay(dayKey, shift);
 
-  const newStart = prompt(
-    `Start time for ${shift.name} on ${dayKey}\nUse 24-hour format like 06:30`,
-    shiftForDay.start,
+  activeTimeEdit = {
+    dayKey: dayKey,
+    shift: shift,
+  };
+
+  editTimeTitle.textContent = `Edit ${shift.name}`;
+  editTimeSubtitle.textContent = `${formatDateKeyForDisplay(
+    dayKey,
+  )} · this change only affects this date.`;
+
+  setPrettyStartTime(shiftForDay.start);
+  setPrettyEndTime(shiftForDay.end);
+
+  editTimeModal.classList.remove("hidden");
+}
+
+function closeEditTimeModal() {
+  if (!editTimeModal) {
+    return;
+  }
+
+  editTimeModal.classList.add("hidden");
+
+  activeTimeEdit = {
+    dayKey: "",
+    shift: null,
+  };
+}
+
+function saveEditedShiftTime() {
+  if (!activeTimeEdit.shift) {
+    return;
+  }
+
+  const newStart = getPrettyStartTime();
+  const newEnd = getPrettyEndTime();
+
+  if (!isValidTimeValue(newStart) || !isValidTimeValue(newEnd)) {
+    alert("Please choose a valid start and end time.");
+    return;
+  }
+
+  const overrideKey = getShiftOverrideKey(
+    activeTimeEdit.dayKey,
+    activeTimeEdit.shift.name,
   );
-
-  if (newStart === null) {
-    return;
-  }
-
-  if (!isValidTimeValue(newStart)) {
-    alert("Please use a valid time like 06:30 or 19:00.");
-    return;
-  }
-
-  const newEnd = prompt(
-    `End time for ${shift.name} on ${dayKey}\nUse 24-hour format like 13:00`,
-    shiftForDay.end,
-  );
-
-  if (newEnd === null) {
-    return;
-  }
-
-  if (!isValidTimeValue(newEnd)) {
-    alert("Please use a valid time like 13:00 or 07:00.");
-    return;
-  }
-
-  const overrideKey = getShiftOverrideKey(dayKey, shift.name);
 
   shiftTimeOverrides[overrideKey] = {
     start: newStart,
@@ -357,6 +526,7 @@ function editShiftTimeForDate(dayKey, shift) {
   };
 
   saveData();
+  closeEditTimeModal();
   renderSchedule();
 }
 
@@ -387,7 +557,7 @@ function getActiveShifts() {
     return [
       getShiftConfig("Morning", "06:30", "13:00"),
       getShiftConfig("Afternoon", "13:00", "19:00"),
-      getShiftConfig("Night", "19:00", "06:30"),
+      getShiftConfig("Night", "19:00", "07:00"),
     ];
   }
 
@@ -1204,6 +1374,53 @@ clearScheduleButton.addEventListener("click", function () {
   }
 });
 
+if (minimizeAvailableShiftsButton) {
+  minimizeAvailableShiftsButton.addEventListener("click", function () {
+    const isCurrentlyMinimized =
+      availableShiftsToast.classList.contains("is-minimized");
+
+    localStorage.setItem(
+      "kindshiftAvailableShiftsMinimized",
+      String(!isCurrentlyMinimized),
+    );
+
+    updateAvailableShiftsMinimizedState();
+  });
+}
+
+if (closeEditTimeButton) {
+  closeEditTimeButton.addEventListener("click", function () {
+    closeEditTimeModal();
+  });
+}
+
+if (cancelEditTimeButton) {
+  cancelEditTimeButton.addEventListener("click", function () {
+    closeEditTimeModal();
+  });
+}
+
+if (saveEditTimeButton) {
+  saveEditTimeButton.addEventListener("click", function () {
+    saveEditedShiftTime();
+  });
+}
+
+if (editTimeModal) {
+  editTimeModal.addEventListener("click", function (event) {
+    if (event.target === editTimeModal) {
+      closeEditTimeModal();
+    }
+  });
+}
+
+document.addEventListener("keydown", function (event) {
+  if (editTimeModal && event.key === "Escape") {
+    closeEditTimeModal();
+  }
+});
+
+fillPrettyTimeSelects();
 loadData();
 
 if (monthPicker.value === "") {
@@ -1218,6 +1435,7 @@ scheduleNoteInput.value = scheduleNote;
 
 updateCustomShiftVisibility();
 updatePickerVisibility();
+updateAvailableShiftsMinimizedState();
 renderShiftList();
 renderCaregiverList();
 renderShiftTimeList();
