@@ -966,6 +966,126 @@ button:hover {
   }
 }
 
+.top-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: 560px;
+}
+
+.top-button-row button {
+  min-height: 42px;
+  padding: 10px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+#copy-week-button,
+#paste-week-button {
+  color: var(--green);
+  background: rgba(184, 255, 213, 0.13);
+  border-color: rgba(184, 255, 213, 0.28);
+}
+
+#print-schedule-button,
+#export-data-button,
+#import-data-button {
+  color: var(--blue);
+  background: rgba(143, 216, 255, 0.13);
+  border-color: rgba(143, 216, 255, 0.28);
+}
+
+.settings-header {
+  align-items: flex-start;
+}
+
+.settings-title-group {
+  flex: 1;
+  min-width: 240px;
+}
+
+@media (max-width: 900px) {
+  .settings-header {
+    flex-direction: column;
+  }
+
+  .top-button-row {
+    justify-content: flex-start;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 650px) {
+  .top-button-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .top-button-row button {
+    width: 100%;
+    white-space: normal;
+  }
+
+  #paste-week-button {
+    grid-column: 1 / -1;
+  }
+}
+
+.top-button-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 22px;
+  padding: 14px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(143, 216, 255, 0.18);
+}
+
+.top-button-row button {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 12px;
+  white-space: normal;
+  text-align: center;
+}
+
+#clear-schedule-button {
+  color: var(--red);
+  background: rgba(255, 180, 180, 0.14);
+  border-color: rgba(255, 180, 180, 0.32);
+}
+
+#copy-week-button,
+#paste-week-button {
+  color: var(--green);
+  background: rgba(184, 255, 213, 0.13);
+  border-color: rgba(184, 255, 213, 0.28);
+}
+
+#print-schedule-button,
+#export-data-button,
+#import-data-button {
+  color: var(--blue);
+  background: rgba(143, 216, 255, 0.13);
+  border-color: rgba(143, 216, 255, 0.28);
+}
+
+@media (max-width: 1000px) {
+  .top-button-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .top-button-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Print layout: clean PDF / paper schedule */
 @media print {
   @page {

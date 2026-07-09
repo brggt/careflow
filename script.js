@@ -13,6 +13,7 @@ let caregivers = [];
 let scheduleAssignments = {};
 let scheduleNote = "";
 let shiftTimeOverrides = {};
+let copiedWeekAssignments = null;
 
 let activeTimeEdit = {
   mode: "date",
@@ -29,8 +30,6 @@ let shiftTimes = {
 };
 
 const scheduleSection = document.querySelector("#schedule");
-
-const printScheduleButton = document.querySelector("#print-schedule-button");
 
 const customShiftInput = document.querySelector("#custom-shift-name");
 const addShiftButton = document.querySelector("#add-shift-button");
@@ -54,6 +53,15 @@ const weekPickerSection = document.querySelector("#week-picker-section");
 
 const scheduleNoteInput = document.querySelector("#schedule-note");
 const clearScheduleButton = document.querySelector("#clear-schedule-button");
+
+const exportDataButton = document.querySelector("#export-data-button");
+const importDataButton = document.querySelector("#import-data-button");
+const importDataInput = document.querySelector("#import-data-input");
+
+const printScheduleButton = document.querySelector("#print-schedule-button");
+
+const copyWeekButton = document.querySelector("#copy-week-button");
+const pasteWeekButton = document.querySelector("#paste-week-button");
 
 const scheduleTitle = document.querySelector("#schedule-title");
 const shiftTimeList = document.querySelector("#shift-time-list");
@@ -401,6 +409,63 @@ function getDaysInSelectedMonth() {
   }
 
   return days;
+}
+
+function copySelectedWeek() {
+  if (scheduleViewSelect.value !== "weekly") {
+    alert("Switch to Weekly view before copying a week.");
+    return;
+  }
+
+  const weekDays = getDaysInSelectedWeek();
+  const activeShifts = getActiveShifts();
+
+  copiedWeekAssignments = [];
+
+  weekDays.forEach(function (day, dayIndex) {
+    activeShifts.forEach(function (shift) {
+      const assignmentKey = `${day.key}-${shift.name}`;
+      const assignedCaregiver = scheduleAssignments[assignmentKey] || "Open";
+
+      copiedWeekAssignments.push({
+        dayIndex: dayIndex,
+        shiftName: shift.name,
+        caregiver: assignedCaregiver,
+      });
+    });
+  });
+
+  alert("This week has been copied.");
+}
+
+function pasteCopiedWeek() {
+  if (scheduleViewSelect.value !== "weekly") {
+    alert("Switch to Weekly view before pasting a week.");
+    return;
+  }
+
+  if (!copiedWeekAssignments) {
+    alert("Copy a week first.");
+    return;
+  }
+
+  const weekDays = getDaysInSelectedWeek();
+
+  copiedWeekAssignments.forEach(function (copiedShift) {
+    const targetDay = weekDays[copiedShift.dayIndex];
+
+    if (!targetDay) {
+      return;
+    }
+
+    const assignmentKey = `${targetDay.key}-${copiedShift.shiftName}`;
+    scheduleAssignments[assignmentKey] = copiedShift.caregiver;
+  });
+
+  saveData();
+  renderSchedule();
+
+  alert("Copied week pasted to the selected week.");
 }
 
 function updatePickerVisibility() {
@@ -954,10 +1019,6 @@ function renderCaregiverList() {
     caregiverList.append(caregiverItem);
   });
 }
-
-printScheduleButton.addEventListener("click", function () {
-  window.print();
-});
 
 function startAvailableShiftsAutoScroll() {
   clearInterval(availableShiftsScrollInterval);
@@ -1636,52 +1697,70 @@ scheduleNoteInput.addEventListener("input", function () {
   saveData();
 });
 
-clearScheduleButton.addEventListener("click", function () {
-  if (confirm("Are you sure you want to clear the schedule?")) {
-    scheduleAssignments = {};
-    saveData();
-    renderSchedule();
-  }
-});
+if (clearScheduleButton) {
+  clearScheduleButton.addEventListener("click", function () {
+    if (confirm("Are you sure you want to clear the schedule?")) {
+      scheduleAssignments = {};
+      saveData();
+      renderSchedule();
+    }
+  });
+}
 
-clearScheduleButton.addEventListener("click", function () {
-  if (confirm("Are you sure you want to clear the schedule?")) {
-    scheduleAssignments = {};
-    saveData();
-    renderSchedule();
-  }
-});
+if (exportDataButton) {
+  exportDataButton.addEventListener("click", function () {
+    exportCuravelaData();
+  });
+}
 
-exportDataButton.addEventListener("click", function () {
-  exportCuravelaData();
-});
+if (importDataButton && importDataInput) {
+  importDataButton.addEventListener("click", function () {
+    importDataInput.click();
+  });
 
-importDataButton.addEventListener("click", function () {
-  importDataInput.click();
-});
+  importDataInput.addEventListener("change", function () {
+    const file = importDataInput.files[0];
 
-importDataInput.addEventListener("change", function () {
-  const file = importDataInput.files[0];
+    if (!file) {
+      return;
+    }
 
-  if (!file) {
-    return;
-  }
+    importCuravelaData(file);
+    importDataInput.value = "";
+  });
+}
 
-  importCuravelaData(file);
-  importDataInput.value = "";
-});
+if (printScheduleButton) {
+  printScheduleButton.addEventListener("click", function () {
+    window.print();
+  });
+}
 
-minimizeAvailableShiftsButton.addEventListener("click", function () {
-  const isCurrentlyMinimized =
-    availableShiftsToast.classList.contains("is-minimized");
+if (copyWeekButton) {
+  copyWeekButton.addEventListener("click", function () {
+    copySelectedWeek();
+  });
+}
 
-  localStorage.setItem(
-    "curavelaAvailableShiftsMinimized",
-    String(!isCurrentlyMinimized),
-  );
+if (pasteWeekButton) {
+  pasteWeekButton.addEventListener("click", function () {
+    pasteCopiedWeek();
+  });
+}
 
-  updateAvailableShiftsMinimizedState();
-});
+if (minimizeAvailableShiftsButton && availableShiftsToast) {
+  minimizeAvailableShiftsButton.addEventListener("click", function () {
+    const isCurrentlyMinimized =
+      availableShiftsToast.classList.contains("is-minimized");
+
+    localStorage.setItem(
+      "curavelaAvailableShiftsMinimized",
+      String(!isCurrentlyMinimized),
+    );
+
+    updateAvailableShiftsMinimizedState();
+  });
+}
 
 closeEditTimeButton.addEventListener("click", function () {
   closeEditTimeModal();

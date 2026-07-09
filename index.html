@@ -20,22 +20,34 @@
             <h2 id="schedule-title">Weekly Schedule</h2>
             <span id="week-label" class="week-pill">Monday - Sunday</span>
           </div>
+        </div>
 
+        <div class="top-button-row">
           <button id="clear-schedule-button" type="button">
             Clear Schedule
           </button>
+
+          <button id="export-data-button" type="button">Export Backup</button>
+
+          <button id="import-data-button" type="button">Import Backup</button>
+
+          <button id="print-schedule-button" type="button">
+            Print Schedule
+          </button>
+
+          <button id="copy-week-button" type="button">Copy This Week</button>
+
+          <button id="paste-week-button" type="button">
+            Paste to Selected Week
+          </button>
+
+          <input
+            id="import-data-input"
+            class="hidden"
+            type="file"
+            accept=".json"
+          />
         </div>
-
-        <button id="export-data-button" type="button">Export Backup</button>
-        <button id="import-data-button" type="button">Import Backup</button>
-        <input
-          id="import-data-input"
-          class="hidden"
-          type="file"
-          accept=".json"
-        />
-
-        <button id="print-schedule-button" type="button">Print Schedule</button>
 
         <details open>
           <summary>Schedule</summary>
@@ -58,8 +70,21 @@
           </select>
 
           <div id="week-picker-section">
-            <label for="week-start-date">Date in selected week</label>
-            <input id="week-start-date" type="date" />
+            <label>Date in selected week</label>
+
+            <div class="pretty-week-picker">
+              <button id="previous-week-button" type="button">←</button>
+
+              <button id="selected-week-display-button" type="button">
+                <span id="selected-week-display">Selected week</span>
+              </button>
+
+              <button id="next-week-button" type="button">→</button>
+
+              <button id="today-week-button" type="button">Today</button>
+            </div>
+
+            <input id="week-start-date" class="hidden" type="date" />
           </div>
 
           <div id="month-picker-section" class="hidden">
