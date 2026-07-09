@@ -171,14 +171,55 @@
 
     <aside class="available-shifts-toast">
       <div class="available-shifts-header">
-        <span>Available shifts</span>
-        <strong id="toast-open-shifts-count">0</strong>
+        <div class="available-shifts-title">
+          <span>Available shifts</span>
+          <strong id="toast-open-shifts-count">0</strong>
+        </div>
+
+        <button id="minimize-available-shifts-button" type="button">−</button>
       </div>
 
       <div class="available-shifts-body">
         <ul id="available-shifts-list"></ul>
       </div>
     </aside>
+
+    <div id="edit-time-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h2 id="edit-time-title">Edit shift time</h2>
+            <p id="edit-time-subtitle">Change this shift for one date only.</p>
+          </div>
+
+          <button id="close-edit-time-button" type="button">×</button>
+        </div>
+
+        <div class="modal-fields">
+          <label>Start time</label>
+          <div class="pretty-time-row">
+            <select id="edit-start-hour"></select>
+            <span>:</span>
+            <select id="edit-start-minute"></select>
+            <select id="edit-start-period">
+              <option>AM</option>
+              <option>PM</option>
+            </select>
+          </div>
+
+          <label>End time</label>
+          <div class="pretty-time-row">
+            <select id="edit-end-hour"></select>
+            <span>:</span>
+            <select id="edit-end-minute"></select>
+            <select id="edit-end-period">
+              <option>AM</option>
+              <option>PM</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="script.js"></script>
   </body>
