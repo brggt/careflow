@@ -91,10 +91,6 @@ const closeEditTimeButton = document.querySelector("#close-edit-time-button");
 const cancelEditTimeButton = document.querySelector("#cancel-edit-time-button");
 const saveEditTimeButton = document.querySelector("#save-edit-time-button");
 
-const exportDataButton = document.querySelector("#export-data-button");
-const importDataButton = document.querySelector("#import-data-button");
-const importDataInput = document.querySelector("#import-data-input");
-
 let availableShiftsScrollInterval;
 
 function getSavedItem(newKey, oldKey) {
