@@ -967,8 +967,9 @@ button:hover {
 }
 
 .top-button-row {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   margin: 18px 0 22px;
   padding: 14px;
@@ -978,9 +979,9 @@ button:hover {
 }
 
 .top-button-row button {
-  width: 100%;
+  min-width: 170px;
   min-height: 44px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   font-size: 12px;
   white-space: normal;
   text-align: center;
@@ -1018,16 +1019,16 @@ button:hover {
   min-width: 240px;
 }
 
-@media (max-width: 1000px) {
-  .top-button-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+#caregiver-hours-list li.hours-over-limit {
+  color: var(--red);
+  background: rgba(255, 180, 180, 0.14);
+  border-color: rgba(255, 180, 180, 0.32);
 }
 
-@media (max-width: 650px) {
-  .top-button-row {
-    grid-template-columns: 1fr;
-  }
+#caregiver-hours-list li.hours-near-limit {
+  color: #ffe7a8;
+  background: rgba(255, 222, 140, 0.12);
+  border-color: rgba(255, 222, 140, 0.28);
 }
 
 @media (max-width: 900px) {
@@ -1056,26 +1057,6 @@ button:hover {
   #paste-week-button {
     grid-column: 1 / -1;
   }
-}
-
-.top-button-row {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  margin: 18px 0 22px;
-  padding: 14px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(143, 216, 255, 0.18);
-}
-
-.top-button-row button {
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 12px;
-  font-size: 12px;
-  white-space: normal;
-  text-align: center;
 }
 
 #clear-schedule-button {

@@ -15,6 +15,13 @@ let scheduleNote = "";
 let shiftTimeOverrides = {};
 let copiedWeekAssignments = null;
 
+let caregiverMaxHours = {
+  Brody: 50,
+  Shelyn: 50,
+  Raymundo: 50,
+  Miguel: 50,
+};
+
 let activeTimeEdit = {
   mode: "date",
   dayKey: "",
@@ -509,36 +516,6 @@ function copySelectedWeek() {
   });
 
   alert("This week has been copied.");
-}
-
-function pasteCopiedWeek() {
-  if (scheduleViewSelect.value !== "weekly") {
-    alert("Switch to Weekly view before pasting a week.");
-    return;
-  }
-
-  if (!copiedWeekAssignments) {
-    alert("Copy a week first.");
-    return;
-  }
-
-  const weekDays = getDaysInSelectedWeek();
-
-  copiedWeekAssignments.forEach(function (copiedShift) {
-    const targetDay = weekDays[copiedShift.dayIndex];
-
-    if (!targetDay) {
-      return;
-    }
-
-    const assignmentKey = `${targetDay.key}-${copiedShift.shiftName}`;
-    scheduleAssignments[assignmentKey] = copiedShift.caregiver;
-  });
-
-  saveData();
-  renderSchedule();
-
-  alert("Copied week pasted to the selected week.");
 }
 
 function pasteCopiedWeek() {
@@ -1199,7 +1176,6 @@ function startAvailableShiftsAutoScroll() {
     }
   }, 70);
 }
-
 function renderCoverageSummary(scheduleDays, activeShifts) {
   let totalHoursNeeded = 0;
   let totalHoursCovered = 0;
@@ -1233,6 +1209,7 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
         } (${formatTime(shiftForDay.start)} - ${formatTime(
           shiftForDay.end,
         )}, ${formatHours(shiftHours)})`;
+
         availableShiftsList.append(availableShiftItem);
       } else {
         totalHoursCovered += shiftHours;
@@ -1277,9 +1254,27 @@ function renderCoverageSummary(scheduleDays, activeShifts) {
   } else {
     caregivers.forEach(function (caregiverName) {
       const caregiverHoursItem = document.createElement("li");
-      caregiverHoursItem.textContent = `${caregiverName}: ${formatHours(
-        caregiverHours[caregiverName] || 0,
-      )}`;
+      const hoursWorked = caregiverHours[caregiverName] || 0;
+      const maxHours = caregiverMaxHours[caregiverName];
+
+      if (maxHours && hoursWorked > maxHours) {
+        const hoursOver = hoursWorked - maxHours;
+
+        caregiverHoursItem.classList.add("hours-over-limit");
+        caregiverHoursItem.textContent = `${caregiverName}: ${formatHours(
+          hoursWorked,
+        )} ⚠ over by ${formatHours(hoursOver)}`;
+      } else if (maxHours && hoursWorked >= maxHours - 5) {
+        caregiverHoursItem.classList.add("hours-near-limit");
+        caregiverHoursItem.textContent = `${caregiverName}: ${formatHours(
+          hoursWorked,
+        )} · near ${formatHours(maxHours)} limit`;
+      } else {
+        caregiverHoursItem.textContent = `${caregiverName}: ${formatHours(
+          hoursWorked,
+        )}`;
+      }
+
       caregiverHoursList.append(caregiverHoursItem);
     });
   }
